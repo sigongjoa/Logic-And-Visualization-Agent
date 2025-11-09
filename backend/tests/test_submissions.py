@@ -27,9 +27,13 @@ client = TestClient(app)
 def test_create_submission():
     # 1. Setup: Create a student, curriculum, and concept
     db = TestingSessionLocal()
+    # Clear ConceptsLibrary to ensure a clean state
+    db.query(models.ConceptsLibrary).delete()
+    db.commit()
+
     student_id = "std_testuser_submission"
     curriculum_id = "MATH-01"
-    concept_id = "C-M-007" # Use the correct concept_id
+    concept_id = "C_이차함수" # Use the correct concept_id from knowledge graph
 
     # Ensure student exists (or create if not)
     if not db.query(models.Student).filter_by(student_id=student_id).first():
@@ -49,9 +53,9 @@ def test_create_submission():
     if not db.query(models.ConceptsLibrary).filter_by(concept_id=concept_id).first():
         db.add(models.ConceptsLibrary(
             concept_id=concept_id,
-            curriculum_id="M-ALL", # Match the curriculum_id from populate_db.py
+            curriculum_id="M-ALL",
             concept_name="이차함수와 그래프",
-            manim_data_path="http://example.com/manim/C-M-007"
+            manim_data_path="http://example.com/manim/C_이차함수"
         ))
         db.commit()
     db.close()
@@ -70,9 +74,9 @@ def test_create_submission():
     data = response.json()
     assert data["status"] == "PENDING"
     assert "submission_id" in data
-    assert data["logical_path_text"] is not None
-    assert data["concept_id"] == "C-M-007" # Assert the correct concept_id
-    assert data["manim_content_url"] is not None
+    assert data["logical_path_text"].startswith("The problem '이차함수와 그래프' is analyzed.")
+    assert data["concept_id"] == "C_이차함수" # Assert the correct concept_id based on the problem text
+    assert data["manim_content_url"] == "http://example.com/manim/C_이차함수"
 
     # 5. Verify the data in the database (Submission and StudentMastery)
     db = TestingSessionLocal()
@@ -81,7 +85,7 @@ def test_create_submission():
     assert submission_entry.student_id == student_id
     assert submission_entry.status == "PENDING"
 
-    mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id="C-M-007").first()
+    mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id="C_이차함수").first()
     assert mastery_entry is not None
     assert mastery_entry.mastery_score == 70 # Assuming a mock mastery score update
     assert mastery_entry.status == "IN_PROGRESS" # Status should be IN_PROGRESS
@@ -91,8 +95,12 @@ def test_create_submission():
 def test_create_submission_and_update_vector():
     # 1. Setup: Create a student, curriculum, and concept
     db = TestingSessionLocal()
+    # Clear ConceptsLibrary to ensure a clean state
+    db.query(models.ConceptsLibrary).delete()
+    db.commit()
+
     student_id = "std_testuser_vector"
-    concept_id = "C-M-008"
+    concept_id = "C_피타고라스" # Use the correct concept_id from knowledge graph
 
     # Ensure student exists (or create if not)
     if not db.query(models.Student).filter_by(student_id=student_id).first():
@@ -120,7 +128,7 @@ def test_create_submission_and_update_vector():
             concept_id=concept_id,
             curriculum_id="M-ALL",
             concept_name="피타고라스의 정리",
-            manim_data_path="http://example.com/manim/C-M-008"
+            manim_data_path="http://example.com/manim/C_피타고라스"
         ))
         db.commit()
     db.close()
@@ -137,7 +145,7 @@ def test_create_submission_and_update_vector():
     # 4. Assert the response
     assert response.status_code == 201
     data = response.json()
-    assert data["concept_id"] == concept_id
+    assert data["concept_id"] == "C_피타고라스"
 
     # 5. Verify the vector was updated
     db.close() # Close the session used for setup

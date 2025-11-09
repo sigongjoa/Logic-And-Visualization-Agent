@@ -186,6 +186,8 @@ def send_report(db: Session, report_id: int):
         db.refresh(db_report)
     return db_report
 
+from fastapi import HTTPException # Added import
+
 # Submissions
 def create_submission(db: Session, submission: schemas.SubmissionCreate):
     submission_id = f"sub_{uuid.uuid4().hex[:8]}"
@@ -199,24 +201,40 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate):
     db.commit()
     db.refresh(db_submission)
 
-    # Determine concept_id based on problem_text (simulated LLM analysis)
-    concept = search_concept_by_keyword(db, submission.problem_text)
-    concept_id = concept.concept_id if concept else None
+    # Determine concept_id, logical_path_text, and manim_data_path based on problem_text (simulated Meta-RAG analysis)
+    meta_rag_result = search_concept_by_keyword(db, submission.problem_text)
+    
+    if not meta_rag_result:
+        # If no concept is found, we can't proceed with the V1 logic.
+        # In a real scenario, we might have a fallback or error state.
+        # For now, we'll raise an error.
+        raise HTTPException(status_code=404, detail="No relevant concept found for the submission.")
 
-    if concept_id:
-        # Check if StudentMastery entry exists
-        mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
-        if mastery_entry:
-            # Update existing entry
-            update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
-        else:
-            # Create new entry
-            create_student_mastery(db, schemas.StudentMastery(
-                student_id=submission.student_id,
-                concept_id=concept_id,
-                mastery_score=70, # Placeholder score
-                status="IN_PROGRESS" # Placeholder status
-            ))
+    concept_id = meta_rag_result["concept_id"]
+    logical_path_text = meta_rag_result["logical_path_text"]
+    manim_data_path = meta_rag_result["manim_data_path"]
+
+    # Assign logical_path_text and concept_id to db_submission
+    db_submission.logical_path_text = logical_path_text
+    db_submission.concept_id = concept_id
+    db.commit() # Commit the changes to db_submission
+    db.refresh(db_submission) # Refresh db_submission to reflect committed changes
+
+    # Update StudentMastery based on the submission
+    # This check is redundant now as meta_rag_result ensures concept_id
+    # Check if StudentMastery entry exists
+    mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
+    if mastery_entry:
+        # Update existing entry
+        update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
+    else:
+        # Create new entry
+        create_student_mastery(db, schemas.StudentMastery(
+            student_id=submission.student_id,
+            concept_id=concept_id,
+            mastery_score=70, # Placeholder score
+            status="IN_PROGRESS" # Placeholder status
+        ))
 
     # Create a new vector history entry based on the submission
     # For now, using dummy vector data. In a real scenario, this would come from LLM analysis.
@@ -245,12 +263,29 @@ def update_submission_status(db: Session, submission_id: str, status: str):
         db.refresh(db_submission)
     return db_submission
 
-def search_concept_by_keyword(db: Session, keyword: str):
-    # This is a very basic simulation. In a real scenario, this would involve
-    # more sophisticated text search or an actual RAG system.
-    return db.query(models.ConceptsLibrary).filter(
+def search_concept_by_keyword(db: Session, keyword: str) -> Optional[dict]:
+    # This is a very basic simulation of Meta-RAG.
+    # In a real scenario, this would involve a sophisticated LLM analysis
+    # to identify the concept and generate a logical path text.
+    concept = db.query(models.ConceptsLibrary).filter(
         models.ConceptsLibrary.concept_name.ilike(f"%{keyword}%")
     ).first()
+    
+    if concept:
+        # Simulate logical path text generation
+        logical_path_text = (
+            f"The problem '{keyword}' is analyzed. "
+            f"It primarily involves the concept of '{concept.concept_name}'. "
+            f"A step-by-step logical path would typically involve understanding "
+            f"the definition of {concept.concept_name}, applying relevant formulas, "
+            f"and verifying the solution."
+        )
+        return {
+            "concept_id": concept.concept_id,
+            "logical_path_text": logical_path_text,
+            "manim_data_path": concept.manim_data_path # Include manim_data_path
+        }
+    return None
 
 # Curriculum and Concepts
 def create_curriculum(db: Session, curriculum: schemas.Curriculum):
@@ -294,6 +329,7 @@ def create_student_mastery(db: Session, mastery: schemas.StudentMastery):
         concept_id=mastery.concept_id,
         mastery_score=mastery.mastery_score,
         status=mastery.status,
+        last_updated=datetime.now(UTC), # Explicitly set last_updated
     )
     db.add(db_mastery)
     db.commit()
