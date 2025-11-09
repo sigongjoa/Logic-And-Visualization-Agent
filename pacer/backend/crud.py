@@ -90,3 +90,14 @@ def update_student_mastery(db: Session, student_id: str, concept_id: str, master
     db.commit()
     db.refresh(db_mastery)
     return db_mastery
+
+def create_coach_memo(db: Session, memo: schemas.CoachMemoCreate):
+    db_memo = models.CoachMemo(
+        coach_id=memo.coach_id,
+        student_id=memo.student_id,
+        memo_text=memo.memo_text,
+    )
+    db.add(db_memo)
+    db.commit()
+    db.refresh(db_memo)
+    return db_memo

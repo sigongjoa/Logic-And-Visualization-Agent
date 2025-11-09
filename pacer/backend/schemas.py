@@ -50,6 +50,11 @@ class CoachMemoCreate(BaseModel):
     student_id: str
     memo_text: str
 
+class CoachMemoResponse(CoachMemoCreate):
+    memo_id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class WeeklyReport(BaseModel):
     report_id: int
     student_id: str
