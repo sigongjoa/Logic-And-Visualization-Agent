@@ -70,9 +70,20 @@ class WeeklyReport(BaseModel):
     finalized_at: Optional[datetime] = None
 
 class LLMFeedback(BaseModel):
-    log_id: int
+    log_id: Optional[int] = None
     coach_feedback: str
     reason_code: Optional[str] = None
+    source_submission_id: Optional[str] = None
+
+class LLMLogResponse(BaseModel):
+    log_id: int
+    source_submission_id: Optional[str] = None
+    decision: str
+    model_version: Optional[str] = None
+    coach_feedback: Optional[str] = None
+    reason_code: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 class CoachComment(BaseModel):
     coach_comment: str

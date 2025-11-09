@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime, UTC
+from typing import Optional
 
 def create_assessment_and_vector(db: Session, assessment: schemas.AssessmentCreate, assessment_id: str, vector_id: str):
     # 1. Create the Assessment object
@@ -101,3 +102,16 @@ def create_coach_memo(db: Session, memo: schemas.CoachMemoCreate):
     db.commit()
     db.refresh(db_memo)
     return db_memo
+
+def create_llm_log_feedback(db: Session, feedback: schemas.LLMFeedback, source_submission_id: Optional[str], decision: str, model_version: str):
+    db_llm_log = models.LLMLog(
+        source_submission_id=source_submission_id,
+        decision=decision,
+        model_version=model_version,
+        coach_feedback=feedback.coach_feedback,
+        reason_code=feedback.reason_code,
+    )
+    db.add(db_llm_log)
+    db.commit()
+    db.refresh(db_llm_log)
+    return db_llm_log
