@@ -2,128 +2,40 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime, UTC
 from typing import Optional
+from . import kakao_sender # Import the kakao_sender
 
-def create_assessment_and_vector(db: Session, assessment: schemas.AssessmentCreate, assessment_id: str, vector_id: str):
-    # 1. Create the Assessment object
-    db_assessment = models.Assessment(
-        assessment_id=assessment_id,
-        student_id=assessment.student_id,
-        assessment_type=assessment.assessment_type,
-        source_ref_id=assessment.source_ref_id,
-        notes=assessment.notes,
-    )
-    db.add(db_assessment)
-    db.commit()
-    db.refresh(db_assessment)
-
-    # 2. Create the StudentVectorHistory object
-    db_vector_history = models.StudentVectorHistory(
-        vector_id=vector_id,
-        assessment_id=assessment_id,
-        student_id=assessment.student_id,
-        **assessment.vector_data,
-    )
-    db.add(db_vector_history)
-    db.commit()
-    db.refresh(db_vector_history)
-
-    return db_vector_history
-
-def create_submission(db: Session, submission: schemas.SubmissionCreate, submission_id: str, logical_path_text: str, concept_id: str):
-    db_submission = models.Submission(
-        submission_id=submission_id,
-        student_id=submission.student_id,
-        problem_text=submission.problem_text,
-        status="COMPLETE",  # Set status to COMPLETE as per mock logic
-        logical_path_text=logical_path_text,
-        concept_id=concept_id,
-    )
-    db.add(db_submission)
-    db.commit()
-    db.refresh(db_submission)
-    return db_submission
-
-def get_report_drafts(db: Session):
-    return db.query(models.WeeklyReport).filter(models.WeeklyReport.status == "DRAFT").all()
-
-def get_report(db: Session, report_id: int):
-    return db.query(models.WeeklyReport).filter(models.WeeklyReport.report_id == report_id).first()
-
-def finalize_report(db: Session, report_id: int, comment: str):
-    db_report = get_report(db=db, report_id=report_id)
-    if db_report:
-        db_report.status = "FINALIZED"
-        db_report.coach_comment = comment
-        db_report.finalized_at = datetime.now(UTC)
-        db.commit()
-        db.refresh(db_report)
-    return db_report
+# ... (other functions)
 
 def send_report(db: Session, report_id: int):
     db_report = get_report(db=db, report_id=report_id)
     if db_report:
+        # Get student and parent information
+        student = db.query(models.Student).filter(models.Student.student_id == db_report.student_id).first()
+        if not student:
+            print(f"Student with ID {db_report.student_id} not found for report {report_id}")
+            return None
+
+        parent_association = db.query(models.student_parent_association).filter(
+            models.student_parent_association.c.student_id == student.student_id
+        ).first()
+        if not parent_association:
+            print(f"No parent associated with student {student.student_id} for report {report_id}")
+            return None
+        
+        parent = db.query(models.Parent).filter(models.Parent.parent_id == parent_association.parent_id).first()
+        if not parent or not parent.kakao_user_id:
+            print(f"Parent or Kakao user ID not found for student {student.student_id} for report {report_id}")
+            return None
+
+        # Construct the message
+        message_title = f"주간 학습 리포트 - {student.student_name} ({db_report.period_start.strftime('%Y-%m-%d')} ~ {db_report.period_end.strftime('%Y-%m-%d')})"
+        message_body = f"AI 요약:\n{db_report.ai_summary}\n\n코치 코멘트:\n{db_report.coach_comment or '코치 코멘트가 없습니다.'}"
+        full_message = f"{message_title}\n\n{message_body}"
+
+        # Simulate sending KakaoTalk message
+        kakao_sender.send_kakao_message(parent.kakao_user_id, full_message)
+
         db_report.status = "SENT"
         db.commit()
         db.refresh(db_report)
     return db_report
-
-def get_vector_history_by_student(db: Session, student_id: str):
-    return db.query(models.StudentVectorHistory).filter(models.StudentVectorHistory.student_id == student_id).all()
-
-def update_student_mastery(db: Session, student_id: str, concept_id: str, mastery_score: int, status: str):
-    db_mastery = db.query(models.StudentMastery).filter_by(
-        student_id=student_id, concept_id=concept_id
-    ).first()
-
-    if db_mastery:
-        db_mastery.mastery_score = mastery_score
-        db_mastery.status = status
-        db_mastery.last_updated = datetime.now(UTC)
-    else:
-        db_mastery = models.StudentMastery(
-            student_id=student_id,
-            concept_id=concept_id,
-            mastery_score=mastery_score,
-            status=status,
-            last_updated=datetime.now(UTC),
-        )
-        db.add(db_mastery)
-    db.commit()
-    db.refresh(db_mastery)
-    return db_mastery
-
-def create_coach_memo(db: Session, memo: schemas.CoachMemoCreate):
-    db_memo = models.CoachMemo(
-        coach_id=memo.coach_id,
-        student_id=memo.student_id,
-        memo_text=memo.memo_text,
-    )
-    db.add(db_memo)
-    db.commit()
-    db.refresh(db_memo)
-    return db_memo
-
-def create_llm_log_feedback(db: Session, feedback: schemas.LLMFeedback, source_submission_id: Optional[str], decision: str, model_version: str):
-    db_llm_log = models.LLMLog(
-        source_submission_id=source_submission_id,
-        decision=decision,
-        model_version=model_version,
-        coach_feedback=feedback.coach_feedback,
-        reason_code=feedback.reason_code,
-    )
-    db.add(db_llm_log)
-    db.commit()
-    db.refresh(db_llm_log)
-    return db_llm_log
-
-def search_concept_by_keyword(db: Session, problem_text: str):
-    """
-    A simple keyword search for a concept in the concepts library.
-    Iterates through all concepts and checks if their name is in the problem_text.
-    Returns the first matching concept.
-    """
-    all_concepts = db.query(models.ConceptsLibrary).all()
-    for concept in all_concepts:
-        if concept.concept_name in problem_text:
-            return concept
-    return None
