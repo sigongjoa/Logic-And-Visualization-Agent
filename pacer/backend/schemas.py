@@ -1,8 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
-
-
 
 class VectorHistoryEntry(BaseModel):
     vector_id: str
@@ -73,3 +71,35 @@ class LLMFeedback(BaseModel):
 
 class CoachComment(BaseModel):
     coach_comment: str
+
+
+class Curriculum(BaseModel):
+    curriculum_id: str
+    curriculum_name: str
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Concept(BaseModel):
+    concept_id: str
+    curriculum_id: Optional[str] = None
+    concept_name: str
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ConceptRelation(BaseModel):
+    relation_id: int
+    from_concept_id: str
+    to_concept_id: str
+    relation_type: str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class StudentMastery(BaseModel):
+    student_id: str
+    concept_id: str
+    mastery_score: int
+    status: Optional[str] = None
+    last_updated: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)

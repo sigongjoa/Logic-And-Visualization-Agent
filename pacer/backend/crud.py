@@ -68,3 +68,25 @@ def send_report(db: Session, report_id: int):
 
 def get_vector_history_by_student(db: Session, student_id: str):
     return db.query(models.StudentVectorHistory).filter(models.StudentVectorHistory.student_id == student_id).all()
+
+def update_student_mastery(db: Session, student_id: str, concept_id: str, mastery_score: int, status: str):
+    db_mastery = db.query(models.StudentMastery).filter_by(
+        student_id=student_id, concept_id=concept_id
+    ).first()
+
+    if db_mastery:
+        db_mastery.mastery_score = mastery_score
+        db_mastery.status = status
+        db_mastery.last_updated = datetime.now(UTC)
+    else:
+        db_mastery = models.StudentMastery(
+            student_id=student_id,
+            concept_id=concept_id,
+            mastery_score=mastery_score,
+            status=status,
+            last_updated=datetime.now(UTC),
+        )
+        db.add(db_mastery)
+    db.commit()
+    db.refresh(db_mastery)
+    return db_mastery

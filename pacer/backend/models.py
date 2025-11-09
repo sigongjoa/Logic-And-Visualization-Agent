@@ -87,12 +87,39 @@ class StudentVectorHistory(Base):
     axis4_gri = Column(Integer, CheckConstraint("axis4_gri BETWEEN 0 AND 100"), nullable=False)
 
 
+class Curriculum(Base):
+    __tablename__ = "curriculums"
+    curriculum_id = Column(String(50), primary_key=True)
+    curriculum_name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+
+
 class ConceptsLibrary(Base):
     __tablename__ = "concepts_library"
     concept_id = Column(String(50), primary_key=True)
+    curriculum_id = Column(String(50), ForeignKey("curriculums.curriculum_id"))
     concept_name = Column(String(100), nullable=False)
-    manim_data_path = Column(String(255), nullable=False)
+    manim_data_path = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
+
+
+class ConceptRelation(Base):
+    __tablename__ = "concept_relations"
+    relation_id = Column(Integer, primary_key=True, autoincrement=True)
+    from_concept_id = Column(String(50), ForeignKey("concepts_library.concept_id"))
+    to_concept_id = Column(String(50), ForeignKey("concepts_library.concept_id"))
+    relation_type = Column(String(20))
+
+
+class StudentMastery(Base):
+    __tablename__ = "student_mastery"
+    student_id = Column(String(50), ForeignKey("students.student_id"), primary_key=True)
+    concept_id = Column(String(50), ForeignKey("concepts_library.concept_id"), primary_key=True)
+    mastery_score = Column(Integer, CheckConstraint("mastery_score BETWEEN 0 AND 100"), nullable=False)
+    status = Column(String(20))
+    last_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+
 
 
 class Submission(Base):

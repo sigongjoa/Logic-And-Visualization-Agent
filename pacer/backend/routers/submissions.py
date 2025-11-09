@@ -29,6 +29,18 @@ def create_submission(
         concept_id=concept_id,
     )
 
+    # Update StudentMastery based on the submission
+    # For V1, we'll mock the mastery score and status update
+    mock_mastery_score = 70
+    mock_mastery_status = "MASTERED"
+    crud.update_student_mastery(
+        db=db,
+        student_id=submission.student_id,
+        concept_id=concept_id,
+        mastery_score=mock_mastery_score,
+        status=mock_mastery_status,
+    )
+
     return schemas.SubmissionResult(
         submission_id=db_submission.submission_id,
         status=db_submission.status,
