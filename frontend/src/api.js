@@ -79,3 +79,43 @@ export const getDraftReports = async () => {
   }
   return response.json();
 };
+
+export const getReportDetails = async (reportId) => {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch report details for report ${reportId}`);
+  }
+  return response.json();
+};
+
+export const finalizeReport = async (reportId, coachComment) => {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}/finalize`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ coach_comment: coachComment }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to finalize report ${reportId}`);
+  }
+  return response.json();
+};
+
+export const sendReport = async (reportId) => {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to send report ${reportId}`);
+  }
+  return response.json();
+};
