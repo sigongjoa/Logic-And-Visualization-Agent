@@ -90,6 +90,19 @@ def test_create_submission():
     assert mastery_entry.mastery_score == 70 # Assuming a mock mastery score update
     assert mastery_entry.status == "IN_PROGRESS" # Status should be IN_PROGRESS
     assert mastery_entry.last_updated is not None
+
+    # Verify LLMLog entry
+    llm_log_entry = db.query(models.LLMLog).filter_by(source_submission_id=data["submission_id"]).first()
+    assert llm_log_entry is not None
+    assert llm_log_entry.decision == "ANALYSIS_COMPLETE"
+    assert llm_log_entry.model_version == "V1_SIMULATED"
+
+    # Verify AnkiCard entry
+    anki_card_entry = db.query(models.AnkiCard).filter_by(student_id=student_id, llm_log_id=llm_log_entry.log_id).first()
+    assert anki_card_entry is not None
+    assert anki_card_entry.question.startswith("What is the key concept related to '이차함수와 그래프'?")
+    assert anki_card_entry.answer.startswith("The problem is primarily about 'C_이차함수'")
+    assert anki_card_entry.next_review_date is not None
     db.close()
 
 def test_create_submission_and_update_vector():
@@ -159,4 +172,17 @@ def test_create_submission_and_update_vector():
     assert new_vector.axis1_geo == 60
     assert new_vector.axis3_pro == 55
     assert new_vector.axis4_acc == 50
+
+    # Verify LLMLog entry
+    llm_log_entry = db.query(models.LLMLog).filter_by(source_submission_id=data["submission_id"]).first()
+    assert llm_log_entry is not None
+    assert llm_log_entry.decision == "ANALYSIS_COMPLETE"
+    assert llm_log_entry.model_version == "V1_SIMULATED"
+
+    # Verify AnkiCard entry
+    anki_card_entry = db.query(models.AnkiCard).filter_by(student_id=student_id, llm_log_id=llm_log_entry.log_id).first()
+    assert anki_card_entry is not None
+    assert anki_card_entry.question.startswith("What is the key concept related to '피타고라스의 정리'?")
+    assert anki_card_entry.answer.startswith("The problem is primarily about 'C_피타고라스'")
+    assert anki_card_entry.next_review_date is not None
     db.close()

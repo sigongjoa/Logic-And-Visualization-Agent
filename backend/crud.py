@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta # Added timedelta
 from typing import Optional, List
 import uuid
 import logging
@@ -247,7 +247,36 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate):
         notes=f"Vector generated from submission {submission_id}",
         vector_data=ai_vector_data # Use simulated AI data
     )
-    create_assessment_and_vector(db, assessment_schema)
+    db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
+
+    # Create LLMLog entry
+    llm_log_feedback_schema = schemas.LLMFeedback(
+        coach_feedback="", # No coach feedback at this stage
+        reason_code=None,
+    )
+    db_llm_log = create_llm_log_feedback(
+        db=db,
+        feedback=llm_log_feedback_schema,
+        source_submission_id=submission_id,
+        decision="ANALYSIS_COMPLETE",
+        model_version="V1_SIMULATED",
+    )
+
+    # Create AnkiCard entry (V1 Simulation)
+    anki_question = f"What is the key concept related to '{submission.problem_text}'?"
+    anki_answer = f"The problem is primarily about '{concept_id}' and its logical path is: {logical_path_text}"
+    
+    # For V1, set next_review_date to tomorrow
+    next_review_date = datetime.now(UTC) + timedelta(days=1)
+
+    create_anki_card(
+        db=db,
+        student_id=submission.student_id,
+        llm_log_id=db_llm_log.log_id,
+        question=anki_question,
+        answer=anki_answer,
+        next_review_date=next_review_date,
+    )
 
     return db_submission
 
@@ -377,3 +406,30 @@ def update_student_mastery(db: Session, student_id: str, concept_id: str, master
         db.commit()
         db.refresh(db_mastery)
     return db_mastery
+
+# Anki Card CRUD operations
+def create_anki_card(
+    db: Session,
+    student_id: str,
+    llm_log_id: int,
+    question: str,
+    answer: str,
+    next_review_date: datetime,
+    interval_days: int = 0,
+    ease_factor: float = 2.5,
+    repetitions: int = 0,
+):
+    db_anki_card = models.AnkiCard(
+        student_id=student_id,
+        llm_log_id=llm_log_id,
+        question=question,
+        answer=answer,
+        next_review_date=next_review_date,
+        interval_days=interval_days,
+        ease_factor=ease_factor,
+        repetitions=repetitions,
+    )
+    db.add(db_anki_card)
+    db.commit()
+    db.refresh(db_anki_card)
+    return db_anki_card
