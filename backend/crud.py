@@ -221,8 +221,6 @@ def send_report(db: Session, report_id: int):
         db.refresh(db_report)
     return db_report
 
-from fastapi import HTTPException # Added import
-
 # Anki Card CRUD operations
 def create_anki_card(
     db: Session,
