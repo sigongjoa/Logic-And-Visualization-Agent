@@ -11,15 +11,15 @@
     *   **목적:** 서버의 API 엔드포인트, 요청/응답 구조를 정의합니다.
 
 2.  **DB 모델 (The Storage)**
-    *   **파일:** `backend/models.py`
+    *   **파일:** `pacer/backend/models.py`
     *   **목적:** DB 명세서를 SQLAlchemy 코드로 구현합니다.
 
 3.  **API 데이터 스키마 (The Data)**
-    *   **파일:** `backend/schemas.py`
+    *   **파일:** `pacer/backend/schemas.py`
     *   **목적:** API 명세서의 `requestBody`와 `response`를 Pydantic 모델로 정의합니다.
 
 4.  **테스트 케이스 (The Validator)**
-    *   **파일:** `backend/tests/test_*.py`
+    *   **파일:** `pacer/backend/tests/test_*.py`
     *   **목적:** API의 성공 조건을 코드로 정의합니다.
 
 5.  **배포/인프라 명세서 (The Environment)**
@@ -29,9 +29,9 @@
 ## 2. 🚀 개발 워크플로우 (How-to)
 
 1.  **(준비)** `atlas_openapi_v1.yaml` (API 명세)과 `docs/ATLAS_DB_Specification.md` (DB 명세)를 확정합니다.
-2.  **(DB/API 스키마 정의)** 명세를 바탕으로 `backend/models.py`와 `backend/schemas.py`의 뼈대를 작성합니다.
-3.  **(테스트 작성)** `backend/tests/` 폴더에 API를 호출하는 테스트 코드(`test_assessments.py` 등)를 작성합니다.
+2.  **(DB/API 스키마 정의)** 명세를 바탕으로 `pacer/backend/models.py`와 `pacer/backend/schemas.py`의 뼈대를 작성합니다.
+3.  **(테스트 작성)** `pacer/backend/tests/` 폴더에 API를 호출하는 테스트 코드(`test_assessments.py` 등)를 작성합니다.
 4.  **(1차 실행)** `pytest`를 실행하여 모든 테스트가 **실패(FAIL)**하는 것을 확인합니다.
-5.  **(기능 구현)** `backend/*_router.py`와 `backend/crud.py`에 비즈니스 로직을 구현합니다.
+5.  **(기능 구현)** `pacer/backend/*_router.py`와 `pacer/backend/crud.py`에 비즈니스 로직을 구현합니다.
 6.  **(2차 실행)** `pytest`를 다시 실행하여 모든 테스트가 **통과(PASS)**할 때까지 5번과 6번을 반복합니다.
 7.  **(배포)** 모든 테스트가 통과하면, `Dockerfile`과 `terraform` 스펙을 사용해 Cloud Run에 배포합니다.

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend import models
+from pacer.backend import models
 
 # Database setup
 # Using a file-based SQLite DB for local development.
@@ -33,7 +33,7 @@ def get_db():
 def read_root():
     return {"message": "Welcome to Project: ATLAS API"}
 
-from backend.routers import assessments, submissions, reports, students, coach_memos, llm_logs
+from pacer.backend.routers import assessments, submissions, reports, students, coach_memos, llm_logs
 app.include_router(assessments.router)
 app.include_router(submissions.router)
 app.include_router(reports.router)

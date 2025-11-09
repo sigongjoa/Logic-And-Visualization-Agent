@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend import schemas, crud
-from backend.main import get_db
+from pacer.backend import schemas, crud
+from pacer.backend.main import get_db
 import uuid
 
 router = APIRouter(
