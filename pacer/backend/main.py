@@ -33,6 +33,7 @@ def get_db():
 def read_root():
     return {"message": "Welcome to Project: ATLAS API"}
 
-from pacer.backend.routers import assessments, submissions
+from pacer.backend.routers import assessments, submissions, reports
 app.include_router(assessments.router)
 app.include_router(submissions.router)
+app.include_router(reports.router)

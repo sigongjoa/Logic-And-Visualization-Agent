@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
+from datetime import datetime, UTC
 
 def create_assessment_and_vector(db: Session, assessment: schemas.AssessmentCreate, assessment_id: str, vector_id: str):
     # 1. Create the Assessment object
@@ -40,3 +41,27 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate, submiss
     db.commit()
     db.refresh(db_submission)
     return db_submission
+
+def get_report_drafts(db: Session):
+    return db.query(models.WeeklyReport).filter(models.WeeklyReport.status == "DRAFT").all()
+
+def get_report(db: Session, report_id: int):
+    return db.query(models.WeeklyReport).filter(models.WeeklyReport.report_id == report_id).first()
+
+def finalize_report(db: Session, report_id: int, comment: str):
+    db_report = get_report(db=db, report_id=report_id)
+    if db_report:
+        db_report.status = "FINALIZED"
+        db_report.coach_comment = comment
+        db_report.finalized_at = datetime.now(UTC)
+        db.commit()
+        db.refresh(db_report)
+    return db_report
+
+def send_report(db: Session, report_id: int):
+    db_report = get_report(db=db, report_id=report_id)
+    if db_report:
+        db_report.status = "SENT"
+        db.commit()
+        db.refresh(db_report)
+    return db_report

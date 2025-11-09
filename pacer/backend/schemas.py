@@ -70,3 +70,6 @@ class LLMFeedback(BaseModel):
     log_id: int
     coach_feedback: str
     reason_code: Optional[str] = None
+
+class CoachComment(BaseModel):
+    coach_comment: str
