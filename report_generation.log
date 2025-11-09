@@ -2041,3 +2041,55 @@ Weekly change in Grit: +10
 
 
 Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x71b6bc1c5b70>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x71b6bc1c5b70>
+Generated summary: Weekly Report for Coach Student 1 (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 20/20
+End of week (Accuracy/Grit): 20/20
+Weekly change in Accuracy: 0
+Weekly change in Grit: 0
+
+--- Submissions This Week ---
+- Problem: 'Problem 1' (Concept: C_COACH_1)
+  Status: COMPLETE, Logical Path: Path 1...
+- Problem: 'Problem 2' (Concept: C_COACH_2)
+  Status: PENDING, Logical Path: Path 2...
+
+--- No Mastery Updates This Week ---
+
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x71b6bc201470>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x71b6bc200c90>
+Generated summary: Weekly Report for Test Report Student (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 50/50
+End of week (Accuracy/Grit): 60/60
+Weekly change in Accuracy: +10
+Weekly change in Grit: +10
+
+--- Submissions This Week ---
+- Problem: 'Report Problem 1' (Concept: C_MATH_TEST)
+  Status: COMPLETE, Logical Path: Logical path for problem 1...
+- Problem: 'Report Problem 2' (Concept: C_MATH_TEST)
+  Status: PENDING, Logical Path: Logical path for problem 2...
+
+--- Mastery Updates This Week ---
+- Concept: C_MATH_TEST, Score: 75, Status: IN_PROGRESS
+
+
+Generated DRAFT report for Test Report Student
