@@ -237,19 +237,15 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate):
         ))
 
     # Create a new vector history entry based on the submission
-    # For now, using dummy vector data. In a real scenario, this would come from LLM analysis.
-    dummy_vector_data = {
-        "axis1_geo": 50, "axis1_alg": 50, "axis1_ana": 50,
-        "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
-        "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
-        "axis4_acc": 55, "axis4_gri": 50, # Changed axis4_acc to 55
-    }
+    # Simulate AI analysis for 4-axis model
+    ai_vector_data = simulate_ai_vector_analysis(submission.problem_text, concept_id)
+
     assessment_schema = schemas.AssessmentCreate(
         student_id=submission.student_id,
         assessment_type="AI_ANALYSIS",
         source_ref_id=submission_id,
         notes=f"Vector generated from submission {submission_id}",
-        vector_data=dummy_vector_data
+        vector_data=ai_vector_data # Use simulated AI data
     )
     create_assessment_and_vector(db, assessment_schema)
 
@@ -262,6 +258,36 @@ def update_submission_status(db: Session, submission_id: str, status: str):
         db.commit()
         db.refresh(db_submission)
     return db_submission
+
+def simulate_ai_vector_analysis(problem_text: str, concept_id: str) -> dict:
+    """
+    Simulates an AI analysis to generate 4-axis vector data based on problem text and concept.
+    For V1, this is a simple simulation.
+    """
+    # Base scores
+    base_scores = {
+        "axis1_geo": 50, "axis1_alg": 50, "axis1_ana": 50,
+        "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
+        "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
+        "axis4_acc": 50, "axis4_gri": 50,
+    }
+
+    # Introduce some variation based on concept_id or problem_text
+    # This is a very basic simulation. In a real scenario, this would be a complex LLM output.
+    if "이차함수" in problem_text or concept_id == "C_이차함수":
+        base_scores["axis1_alg"] += 10
+        base_scores["axis3_con"] += 5
+        base_scores["axis4_acc"] += 5
+    elif "피타고라스" in problem_text or concept_id == "C_피타고라스":
+        base_scores["axis1_geo"] += 10
+        base_scores["axis3_pro"] += 5
+        base_scores["axis4_gri"] += 5
+    
+    # Ensure scores are within 0-100
+    for axis in base_scores:
+        base_scores[axis] = max(0, min(100, base_scores[axis]))
+
+    return base_scores
 
 def search_concept_by_keyword(db: Session, keyword: str) -> Optional[dict]:
     # This is a very basic simulation of Meta-RAG.

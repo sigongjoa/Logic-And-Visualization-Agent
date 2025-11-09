@@ -156,5 +156,7 @@ def test_create_submission_and_update_vector():
 
     assert new_vector is not None
     assert new_vector.vector_id != "vec_initial_2"
-    assert new_vector.axis4_acc == 55 # 60 - 5
+    assert new_vector.axis1_geo == 60
+    assert new_vector.axis3_pro == 55
+    assert new_vector.axis4_acc == 50
     db.close()
