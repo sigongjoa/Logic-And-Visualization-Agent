@@ -2,6 +2,18 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
+class StudentCreate(BaseModel):
+    student_id: str
+    student_name: str
+
+class CoachCreate(BaseModel):
+    coach_id: str
+    coach_name: str
+
+class ParentCreate(BaseModel):
+    parent_name: str
+    kakao_user_id: Optional[str] = None
+
 class VectorHistoryEntry(BaseModel):
     vector_id: str
     assessment_id: str

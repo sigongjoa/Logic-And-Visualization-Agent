@@ -26,7 +26,7 @@ def finalize_report(
     if db_report.status != "DRAFT":
         raise HTTPException(status_code=400, detail="Report is not a draft")
 
-    return crud.finalize_report(db=db, report_id=report_id, comment=report_data.coach_comment)
+    return crud.finalize_report(db=db, report_id=report_id, coach_comment=report_data.coach_comment)
 
 @router.post("/{report_id}/send")
 def send_report(report_id: int, db: Session = Depends(get_db)):

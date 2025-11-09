@@ -13,15 +13,9 @@ router = APIRouter(
 def create_assessment(
     assessment: schemas.AssessmentCreate, db: Session = Depends(get_db)
 ):
-    # Generate unique IDs for assessment and vector
-    assessment_id = f"asmt_{uuid.uuid4()}"
-    vector_id = f"vec_{uuid.uuid4()}"
-
     # Call the CRUD function to create the DB entries
-    db_vector_history = crud.create_assessment_and_vector(
+    db_assessment, db_vector_history = crud.create_assessment_and_vector(
         db=db,
         assessment=assessment,
-        assessment_id=assessment_id,
-        vector_id=vector_id,
     )
     return db_vector_history
