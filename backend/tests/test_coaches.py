@@ -40,6 +40,7 @@ def setup_test_data(db: Session):
     db.query(models.StudentVectorHistory).delete()
     db.query(models.Submission).delete()
     db.query(models.ConceptsLibrary).delete()
+    db.query(models.AnkiCard).delete() # Clear AnkiCard entries
     db.commit()
 
     # Create students

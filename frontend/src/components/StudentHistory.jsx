@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getStudentSubmissions, getStudentAnkiCards } from '../api';
+import { getStudentSubmissions, getStudentAnkiCards, getStudentMastery } from '../api';
 
   const [studentId, setStudentId] = useState('std_kimminjun'); // Default student ID
   const [history, setHistory] = useState([]);
   const [submissions, setSubmissions] = useState([]); // New state for submissions
   const [ankiCards, setAnkiCards] = useState([]); // New state for Anki cards
+  const [mastery, setMastery] = useState([]); // New state for student mastery
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,6 +28,10 @@ import { getStudentSubmissions, getStudentAnkiCards } from '../api';
       // Fetch Anki cards
       const ankiCardsData = await getStudentAnkiCards(studentId);
       setAnkiCards(ankiCardsData);
+
+      // Fetch student mastery
+      const masteryData = await getStudentMastery(studentId);
+      setMastery(masteryData);
 
     } catch (err) {
       setError('Failed to fetch student history. Please ensure the backend is running and the student ID is valid.');
@@ -111,6 +116,22 @@ import { getStudentSubmissions, getStudentAnkiCards } from '../api';
         </div>
       ) : (
         !loading && !error && <p>No Anki cards found for this student.</p>
+      )}
+
+      {mastery.length > 0 ? (
+        <div className="mastery-list">
+          <h3>Concept Mastery:</h3>
+          {mastery.map((entry, index) => (
+            <div key={entry.concept_id || index} className="mastery-entry card">
+              <p><strong>Concept ID:</strong> {entry.concept_id}</p>
+              <p><strong>Mastery Score:</strong> {entry.mastery_score}</p>
+              <p><strong>Status:</strong> {entry.status}</p>
+              <p><strong>Last Updated:</strong> {new Date(entry.last_updated).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        !loading && !error && <p>No concept mastery data found for this student.</p>
       )}
     </div>
   );

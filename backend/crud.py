@@ -291,6 +291,9 @@ def create_anki_card(
 def get_anki_cards_by_student(db: Session, student_id: str) -> List[models.AnkiCard]:
     return db.query(models.AnkiCard).filter(models.AnkiCard.student_id == student_id).all()
 
+def get_student_mastery_by_student(db: Session, student_id: str) -> List[models.StudentMastery]:
+    return db.query(models.StudentMastery).filter(models.StudentMastery.student_id == student_id).all()
+
 # Submissions
 def create_submission(db: Session, submission: schemas.SubmissionCreate):
     submission_id = f"sub_{uuid.uuid4().hex[:8]}"
@@ -319,17 +322,42 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate):
     db.refresh(db_submission) # Refresh db_submission to reflect committed changes
 
     # Update StudentMastery based on the submission
-    mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
-    if mastery_entry:
-        # Update existing entry
-        update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
+    current_mastery = get_student_mastery(db, submission.student_id, concept_id)
+    
+    # Get axis4_acc from LLM analysis for mastery adjustment
+    axis4_acc = ai_vector_data.get("axis4_acc", 50) # Default to 50 if not present
+
+    new_mastery_score = 50
+    new_status = "NOT_STARTED"
+
+    if current_mastery:
+        new_mastery_score = current_mastery.mastery_score
+        if axis4_acc >= 70:
+            new_mastery_score = min(100, new_mastery_score + 10)
+        else:
+            new_mastery_score = max(0, new_mastery_score - 5)
     else:
-        # Create new entry
+        # If no existing mastery, initialize based on first submission's performance
+        if axis4_acc >= 70:
+            new_mastery_score = 60 # Start higher if first attempt is good
+        else:
+            new_mastery_score = 45 # Start lower if first attempt is not good
+
+    if new_mastery_score == 100:
+        new_status = "MASTERED"
+    elif new_mastery_score == 0:
+        new_status = "NOT_STARTED"
+    else:
+        new_status = "IN_PROGRESS"
+
+    if current_mastery:
+        update_student_mastery(db, submission.student_id, concept_id, new_mastery_score, new_status)
+    else:
         create_student_mastery(db, schemas.StudentMastery(
             student_id=submission.student_id,
             concept_id=concept_id,
-            mastery_score=70, # Placeholder score
-            status="IN_PROGRESS" # Placeholder status
+            mastery_score=new_mastery_score,
+            status=new_status
         ))
 
     # Create a new vector history entry based on the submission

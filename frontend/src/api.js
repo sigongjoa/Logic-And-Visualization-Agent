@@ -61,3 +61,12 @@ export const getStudentAnkiCards = async (studentId) => {
   }
   return response.json();
 };
+
+export const getStudentMastery = async (studentId) => {
+  const response = await fetch(`${API_BASE_URL}/students/${studentId}/mastery`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch student mastery for student ${studentId}`);
+  }
+  return response.json();
+};

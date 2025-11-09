@@ -102,7 +102,7 @@ def test_create_submission(mock_post):
 
     mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id="C_이차함수").first()
     assert mastery_entry is not None
-    assert mastery_entry.mastery_score == 70 # Assuming a mock mastery score update
+    assert mastery_entry.mastery_score == 45 # Assuming a mock mastery score update
     assert mastery_entry.status == "IN_PROGRESS" # Status should be IN_PROGRESS
     assert mastery_entry.last_updated is not None
 
