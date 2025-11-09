@@ -142,14 +142,20 @@ async def test_generate_weekly_reports():
         db.execute(models.student_parent_association.insert().values(student_id=student_id, parent_id=parent_id))
         db.commit()
 
-    # 2. Create some vector history for the student
-    # Clean up previous vector history data
+    # 2. Create some vector history, submissions, and mastery updates for the student
+    # Clean up previous data
     db.query(models.StudentVectorHistory).filter_by(student_id=student_id).delete()
+    db.query(models.Submission).filter_by(student_id=student_id).delete()
+    db.query(models.StudentMastery).filter_by(student_id=student_id).delete()
     db.commit()
+
     today = datetime.utcnow()
+    one_week_ago = today - timedelta(days=7)
+
+    # Create vector history
     db.add(models.StudentVectorHistory(
         vector_id="vec_report_1", assessment_id="asmt_report_1", student_id=student_id,
-        created_at=today - timedelta(days=6),
+        created_at=one_week_ago + timedelta(days=1), # Start of week
         axis1_geo=50, axis1_alg=50, axis1_ana=50, axis2_opt=50, axis2_piv=50,
         axis2_dia=50, axis3_con=50, axis3_pro=50, axis3_ret=50, axis4_acc=50, axis4_gri=50
     ))
@@ -161,9 +167,34 @@ async def test_generate_weekly_reports():
     ))
     db.add(models.StudentVectorHistory(
         vector_id="vec_report_3", assessment_id="asmt_report_3", student_id=student_id,
-        created_at=today,
+        created_at=today - timedelta(minutes=1), # End of week (just before report generation)
         axis1_geo=60, axis1_alg=60, axis1_ana=60, axis2_opt=60, axis2_piv=60,
         axis2_dia=60, axis3_con=60, axis3_pro=60, axis3_ret=60, axis4_acc=60, axis4_gri=60
+    ))
+
+    # Create a concept for submissions and mastery
+    concept_id_math = "C_MATH_TEST"
+    if not db.query(models.ConceptsLibrary).filter_by(concept_id=concept_id_math).first():
+        db.add(models.ConceptsLibrary(
+            concept_id=concept_id_math, curriculum_id="M-ALL", concept_name="Math Test Concept", manim_data_path="http://example.com/manim/math_test"
+        ))
+    
+    # Create some submissions
+    db.add(models.Submission(
+        submission_id="sub_report_1", student_id=student_id, problem_text="Report Problem 1",
+        submitted_at=today - timedelta(days=5), status="COMPLETE",
+        logical_path_text="Logical path for problem 1", concept_id=concept_id_math
+    ))
+    db.add(models.Submission(
+        submission_id="sub_report_2", student_id=student_id, problem_text="Report Problem 2",
+        submitted_at=today - timedelta(days=2), status="PENDING",
+        logical_path_text="Logical path for problem 2", concept_id=concept_id_math
+    ))
+
+    # Create some mastery updates
+    db.add(models.StudentMastery(
+        student_id=student_id, concept_id=concept_id_math, mastery_score=75, status="IN_PROGRESS",
+        last_updated=today - timedelta(days=4)
     ))
     db.commit()
 
@@ -182,7 +213,20 @@ async def test_generate_weekly_reports():
     # Verify that the report status is SENT after sending
     sent_report = db.query(models.WeeklyReport).filter_by(report_id=new_report.report_id).first()
     assert sent_report.status == "SENT"
-    assert sent_report.ai_summary is not None
     assert sent_report.vector_start_id == "vec_report_1"
     assert sent_report.vector_end_id == "vec_report_3"
+
+    # Assert specific content in the AI summary
+    student_name = db.query(models.Student).filter_by(student_id=student_id).first().student_name
+    assert f"Weekly Report for {student_name}" in sent_report.ai_summary
+    assert "--- 4-Axis Model Progress ---" in sent_report.ai_summary
+    assert "Start of week (Accuracy/Grit): 50/50" in sent_report.ai_summary
+    assert "End of week (Accuracy/Grit): 60/60" in sent_report.ai_summary
+    assert "Weekly change in Accuracy: +10" in sent_report.ai_summary
+    assert "Weekly change in Grit: +10" in sent_report.ai_summary
+    assert "--- Submissions This Week ---" in sent_report.ai_summary
+    assert "Problem: 'Report Problem 1'" in sent_report.ai_summary
+    assert "Problem: 'Report Problem 2'" in sent_report.ai_summary
+    assert "--- Mastery Updates This Week ---" in sent_report.ai_summary
+    assert f"- Concept: {concept_id_math}, Score: 75, Status: IN_PROGRESS" in sent_report.ai_summary
     db.close()
