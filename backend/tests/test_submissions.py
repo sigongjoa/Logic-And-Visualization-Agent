@@ -4,7 +4,7 @@ from backend.main import app, get_db
 from backend import models, crud
 from backend.models import Base
 from sqlalchemy import create_engine
-from datetime import datetime
+from datetime import datetime, timedelta # Added timedelta
 
 # Setup the Test Database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -125,6 +125,7 @@ def test_create_submission_and_update_vector():
         vector_id="vec_initial_2",
         assessment_id="asmt_initial_2",
         student_id=student_id,
+        created_at=datetime.utcnow() - timedelta(days=10), # Set to an older date
         axis1_geo=60, axis1_alg=60, axis1_ana=60,
         axis2_opt=60, axis2_piv=60, axis2_dia=60,
         axis3_con=60, axis3_pro=60, axis3_ret=60,

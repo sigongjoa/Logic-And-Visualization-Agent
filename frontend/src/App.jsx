@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import StudentHistory from './components/StudentHistory';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionResult from './components/SubmissionResult';
+import CoachDashboard from './components/CoachDashboard'; // New import
+import StudentDetail from './components/StudentDetail';   // New import
 import './App.css';
 
 function App() {
@@ -20,6 +22,9 @@ function App() {
             <li>
               <Link to="/submit">Submit Problem</Link>
             </li>
+            <li>
+              <Link to="/coach">Coach Dashboard</Link> {/* New navigation link */}
+            </li>
           </ul>
         </nav>
 
@@ -28,6 +33,8 @@ function App() {
           <Route path="/history" element={<StudentHistory />} />
           <Route path="/submit" element={<SubmissionForm />} />
           <Route path="/submission-result" element={<SubmissionResult />} />
+          <Route path="/coach" element={<CoachDashboard />} /> {/* New route */}
+          <Route path="/coach/students/:studentId" element={<StudentDetail />} /> {/* New route */}
         </Routes>
       </div>
     </Router>

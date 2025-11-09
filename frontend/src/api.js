@@ -16,3 +16,39 @@ export const createSubmission = async (submissionData) => {
 
   return response.json();
 };
+
+export const getStudents = async () => {
+  const response = await fetch(`${API_BASE_URL}/coaches/students`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to fetch students');
+  }
+  return response.json();
+};
+
+export const getStudentReports = async (studentId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/reports`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch reports for student ${studentId}`);
+  }
+  return response.json();
+};
+
+export const getStudentLatestVector = async (studentId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/latest_vector`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch latest vector for student ${studentId}`);
+  }
+  return response.json();
+};
+
+export const getStudentSubmissions = async (studentId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/submissions`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch submissions for student ${studentId}`);
+  }
+  return response.json();
+};
