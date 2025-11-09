@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker, Session
-from pacer.backend.main import app, get_db
-from pacer.backend import models, crud
+from backend.main import app, get_db
+from backend import models, crud
 from sqlalchemy import create_engine
 from datetime import datetime
 

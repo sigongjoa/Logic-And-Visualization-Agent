@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker, Session
-from pacer.backend.main import app, get_db
-from pacer.backend import models
+from backend.main import app, get_db
+from backend import models
 from sqlalchemy import create_engine
 
 # Setup for the test database

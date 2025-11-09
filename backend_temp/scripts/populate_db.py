@@ -3,10 +3,10 @@ import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-# Add the parent directory to the path to allow imports from 'pacer.backend'
+# Add the parent directory to the path to allow imports from 'backend'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from pacer.backend import models
+from backend import models
 
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./atlas.db"

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from pacer.backend import schemas, crud
-from pacer.backend.main import get_db
+from backend import schemas, crud
+from backend.main import get_db
 
 router = APIRouter(
     prefix="/reports",
