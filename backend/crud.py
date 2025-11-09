@@ -6,12 +6,52 @@ import uuid
 import logging
 from . import kakao_sender # Import the kakao_sender
 import requests # Added requests
+from fastapi import HTTPException # Moved import to top
 
 logger = logging.getLogger(__name__)
 
 # Placeholder for external LLM API configuration
 LLM_API_URL = "http://localhost:8001/llm-analysis" # Example URL
 LLM_API_KEY = "your_llm_api_key" # Replace with actual API key or environment variable
+
+# Placeholder for external Manim Agent API configuration
+MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate" # Example URL
+MANIM_AGENT_API_KEY = "your_manim_api_key" # Replace with actual API key or environment variable
+
+def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
+    """
+    Calls an external Manim Agent API to generate a video based on the concept and logical path.
+    Returns a URL to the generated Manim video.
+    """
+    headers = {"X-API-Key": MANIM_AGENT_API_KEY, "Content-Type": "application/json"}
+    payload = {
+        "concept_id": concept_id,
+        "logical_path_text": logical_path_text
+    }
+
+    try:
+        # In a real scenario, you would make an actual HTTP request here.
+        # For now, we'll simulate the Manim Agent's response.
+        # response = requests.post(MANIM_AGENT_API_URL, headers=headers, json=payload)
+        # response.raise_for_status() # Raise an exception for HTTP errors
+        # manim_response = response.json()
+        # return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
+
+        # Simulated Manim Agent response
+        if "이차함수" in concept_id:
+            return "https://youtube.com/watch?v=quadratic_function_manim"
+        elif "피타고라스" in concept_id:
+            return "https://youtube.com/watch?v=pythagorean_theorem_manim"
+        else:
+            return "https://youtube.com/watch?v=default_manim_video"
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling external Manim Agent API: {e}")
+        # Fallback to a default video or raise an exception
+        return "https://youtube.com/watch?v=error_manim_video"
+    except Exception as e:
+        logger.error(f"Error processing Manim Agent response: {e}")
+        return "https://youtube.com/watch?v=error_manim_video"
 
 # Helper function to get a student
 def get_student(db: Session, student_id: str):
@@ -408,12 +448,11 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
             raise HTTPException(status_code=500, detail="LLM analysis failed to identify a concept and no fallback found.")
 
         concept_id = concept.concept_id
-        manim_data_path = concept.manim_data_path if concept else "https://youtube.com/watch?v=default_video"
-
-        # Simulate logical path text from LLM response
+        concept_name = concept.concept_name # Safely get concept_name
         logical_path_text = llm_response.get("logical_path_text", 
-                                             f"LLM generated logical path for '{problem_text}' related to '{concept.concept_name}'.")
-
+                                             f"LLM generated logical path for '{problem_text}' related to '{concept_name}'.")
+        # Call external Manim Agent to get the video path
+        manim_data_path = call_external_manim_agent(concept_id, logical_path_text)
         # Simulate 4-axis vector data from LLM response
         vector_data = llm_response.get("vector_data", {
             "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
