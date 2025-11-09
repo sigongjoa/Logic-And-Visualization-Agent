@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from main import app, get_db
-from models import Base, StudentVectorHistory
+from pacer.backend.main import app, get_db
+from pacer.backend.models import Base, StudentVectorHistory
 
 # Setup the Test Database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
