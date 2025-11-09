@@ -5,8 +5,13 @@ from typing import Optional, List
 import uuid
 import logging
 from . import kakao_sender # Import the kakao_sender
+import requests # Added requests
 
 logger = logging.getLogger(__name__)
+
+# Placeholder for external LLM API configuration
+LLM_API_URL = "http://localhost:8001/llm-analysis" # Example URL
+LLM_API_KEY = "your_llm_api_key" # Replace with actual API key or environment variable
 
 # Helper function to get a student
 def get_student(db: Session, student_id: str):
@@ -35,6 +40,36 @@ def get_concept(db: Session, concept_id: str):
 # Helper function to get a weekly report
 def get_report(db: Session, report_id: int):
     return db.query(models.WeeklyReport).filter(models.WeeklyReport.report_id == report_id).first()
+
+# Student Mastery
+def create_student_mastery(db: Session, mastery: schemas.StudentMastery):
+    db_mastery = models.StudentMastery(
+        student_id=mastery.student_id,
+        concept_id=mastery.concept_id,
+        mastery_score=mastery.mastery_score,
+        status=mastery.status,
+        last_updated=datetime.now(UTC), # Explicitly set last_updated
+    )
+    db.add(db_mastery)
+    db.commit()
+    db.refresh(db_mastery)
+    return db_mastery
+
+def get_student_mastery(db: Session, student_id: str, concept_id: str):
+    return db.query(models.StudentMastery).filter(
+        models.StudentMastery.student_id == student_id,
+        models.StudentMastery.concept_id == concept_id,
+    ).first()
+
+def update_student_mastery(db: Session, student_id: str, concept_id: str, mastery_score: int, status: str):
+    db_mastery = get_student_mastery(db, student_id, concept_id)
+    if db_mastery:
+        db_mastery.mastery_score = mastery_score
+        db_mastery.status = status
+        db_mastery.last_updated = datetime.now(UTC)
+        db.commit()
+        db.refresh(db_mastery)
+    return db_mastery
 
 # Student CRUD operations
 def create_student(db: Session, student: schemas.StudentCreate):
@@ -188,225 +223,6 @@ def send_report(db: Session, report_id: int):
 
 from fastapi import HTTPException # Added import
 
-# Submissions
-def create_submission(db: Session, submission: schemas.SubmissionCreate):
-    submission_id = f"sub_{uuid.uuid4().hex[:8]}"
-    db_submission = models.Submission(
-        submission_id=submission_id,
-        student_id=submission.student_id,
-        problem_text=submission.problem_text,
-        status="PENDING", # Initial status
-    )
-    db.add(db_submission)
-    db.commit()
-    db.refresh(db_submission)
-
-    # Determine concept_id, logical_path_text, and manim_data_path based on problem_text (simulated Meta-RAG analysis)
-    meta_rag_result = search_concept_by_keyword(db, submission.problem_text)
-    
-    if not meta_rag_result:
-        # If no concept is found, we can't proceed with the V1 logic.
-        # In a real scenario, we might have a fallback or error state.
-        # For now, we'll raise an error.
-        raise HTTPException(status_code=404, detail="No relevant concept found for the submission.")
-
-    concept_id = meta_rag_result["concept_id"]
-    logical_path_text = meta_rag_result["logical_path_text"]
-    manim_data_path = meta_rag_result["manim_data_path"]
-
-    # Assign logical_path_text and concept_id to db_submission
-    db_submission.logical_path_text = logical_path_text
-    db_submission.concept_id = concept_id
-    db.commit() # Commit the changes to db_submission
-    db.refresh(db_submission) # Refresh db_submission to reflect committed changes
-
-    # Update StudentMastery based on the submission
-    # This check is redundant now as meta_rag_result ensures concept_id
-    # Check if StudentMastery entry exists
-    mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
-    if mastery_entry:
-        # Update existing entry
-        update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
-    else:
-        # Create new entry
-        create_student_mastery(db, schemas.StudentMastery(
-            student_id=submission.student_id,
-            concept_id=concept_id,
-            mastery_score=70, # Placeholder score
-            status="IN_PROGRESS" # Placeholder status
-        ))
-
-    # Create a new vector history entry based on the submission
-    # Simulate AI analysis for 4-axis model
-    ai_vector_data = simulate_ai_vector_analysis(submission.problem_text, concept_id)
-
-    assessment_schema = schemas.AssessmentCreate(
-        student_id=submission.student_id,
-        assessment_type="AI_ANALYSIS",
-        source_ref_id=submission_id,
-        notes=f"Vector generated from submission {submission_id}",
-        vector_data=ai_vector_data # Use simulated AI data
-    )
-    db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
-
-    # Create LLMLog entry
-    llm_log_feedback_schema = schemas.LLMFeedback(
-        coach_feedback="", # No coach feedback at this stage
-        reason_code=None,
-    )
-    db_llm_log = create_llm_log_feedback(
-        db=db,
-        feedback=llm_log_feedback_schema,
-        source_submission_id=submission_id,
-        decision="ANALYSIS_COMPLETE",
-        model_version="V1_SIMULATED",
-    )
-
-    # Create AnkiCard entry (V1 Simulation)
-    anki_question = f"What is the key concept related to '{submission.problem_text}'?"
-    anki_answer = f"The problem is primarily about '{concept_id}' and its logical path is: {logical_path_text}"
-    
-    # For V1, set next_review_date to tomorrow
-    next_review_date = datetime.now(UTC) + timedelta(days=1)
-
-    create_anki_card(
-        db=db,
-        student_id=submission.student_id,
-        llm_log_id=db_llm_log.log_id,
-        question=anki_question,
-        answer=anki_answer,
-        next_review_date=next_review_date,
-    )
-
-    return db_submission
-
-def update_submission_status(db: Session, submission_id: str, status: str):
-    db_submission = get_submission(db, submission_id)
-    if db_submission:
-        db_submission.status = status
-        db.commit()
-        db.refresh(db_submission)
-    return db_submission
-
-def simulate_ai_vector_analysis(problem_text: str, concept_id: str) -> dict:
-    """
-    Simulates an AI analysis to generate 4-axis vector data based on problem text and concept.
-    For V1, this is a simple simulation.
-    """
-    # Base scores
-    base_scores = {
-        "axis1_geo": 50, "axis1_alg": 50, "axis1_ana": 50,
-        "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
-        "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
-        "axis4_acc": 50, "axis4_gri": 50,
-    }
-
-    # Introduce some variation based on concept_id or problem_text
-    # This is a very basic simulation. In a real scenario, this would be a complex LLM output.
-    if "이차함수" in problem_text or concept_id == "C_이차함수":
-        base_scores["axis1_alg"] += 10
-        base_scores["axis3_con"] += 5
-        base_scores["axis4_acc"] += 5
-    elif "피타고라스" in problem_text or concept_id == "C_피타고라스":
-        base_scores["axis1_geo"] += 10
-        base_scores["axis3_pro"] += 5
-        base_scores["axis4_gri"] += 5
-    
-    # Ensure scores are within 0-100
-    for axis in base_scores:
-        base_scores[axis] = max(0, min(100, base_scores[axis]))
-
-    return base_scores
-
-def search_concept_by_keyword(db: Session, keyword: str) -> Optional[dict]:
-    # This is a very basic simulation of Meta-RAG.
-    # In a real scenario, this would involve a sophisticated LLM analysis
-    # to identify the concept and generate a logical path text.
-    concept = db.query(models.ConceptsLibrary).filter(
-        models.ConceptsLibrary.concept_name.ilike(f"%{keyword}%")
-    ).first()
-    
-    if concept:
-        # Simulate logical path text generation
-        logical_path_text = (
-            f"The problem '{keyword}' is analyzed. "
-            f"It primarily involves the concept of '{concept.concept_name}'. "
-            f"A step-by-step logical path would typically involve understanding "
-            f"the definition of {concept.concept_name}, applying relevant formulas, "
-            f"and verifying the solution."
-        )
-        return {
-            "concept_id": concept.concept_id,
-            "logical_path_text": logical_path_text,
-            "manim_data_path": concept.manim_data_path # Include manim_data_path
-        }
-    return None
-
-# Curriculum and Concepts
-def create_curriculum(db: Session, curriculum: schemas.Curriculum):
-    db_curriculum = models.Curriculum(
-        curriculum_id=curriculum.curriculum_id,
-        curriculum_name=curriculum.curriculum_name,
-        description=curriculum.description,
-    )
-    db.add(db_curriculum)
-    db.commit()
-    db.refresh(db_curriculum)
-    return db_curriculum
-
-def create_concept(db: Session, concept: schemas.Concept):
-    db_concept = models.ConceptsLibrary(
-        concept_id=concept.concept_id,
-        curriculum_id=concept.curriculum_id,
-        concept_name=concept.concept_name,
-        description=concept.description,
-    )
-    db.add(db_concept)
-    db.commit()
-    db.refresh(db_concept)
-    return db_concept
-
-def create_concept_relation(db: Session, relation: schemas.ConceptRelation):
-    db_relation = models.ConceptRelation(
-        from_concept_id=relation.from_concept_id,
-        to_concept_id=relation.to_concept_id,
-        relation_type=relation.relation_type,
-    )
-    db.add(db_relation)
-    db.commit()
-    db.refresh(db_relation)
-    return db_relation
-
-# Student Mastery
-def create_student_mastery(db: Session, mastery: schemas.StudentMastery):
-    db_mastery = models.StudentMastery(
-        student_id=mastery.student_id,
-        concept_id=mastery.concept_id,
-        mastery_score=mastery.mastery_score,
-        status=mastery.status,
-        last_updated=datetime.now(UTC), # Explicitly set last_updated
-    )
-    db.add(db_mastery)
-    db.commit()
-    db.refresh(db_mastery)
-    return db_mastery
-
-def get_student_mastery(db: Session, student_id: str, concept_id: str):
-    return db.query(models.StudentMastery).filter(
-        models.StudentMastery.student_id == student_id,
-        models.StudentMastery.concept_id == concept_id,
-    ).first()
-
-def update_student_mastery(db: Session, student_id: str, concept_id: str, mastery_score: int, status: str):
-    db_mastery = get_student_mastery(db, student_id, concept_id)
-    if db_mastery:
-        db_mastery.mastery_score = mastery_score
-        db_mastery.status = status
-        db_mastery.last_updated = datetime.now(UTC)
-        db.commit()
-        db.refresh(db_mastery)
-    return db_mastery
-
 # Anki Card CRUD operations
 def create_anki_card(
     db: Session,
@@ -433,3 +249,277 @@ def create_anki_card(
     db.commit()
     db.refresh(db_anki_card)
     return db_anki_card
+
+# Submissions
+def create_submission(db: Session, submission: schemas.SubmissionCreate):
+    submission_id = f"sub_{uuid.uuid4().hex[:8]}"
+    db_submission = models.Submission(
+        submission_id=submission_id,
+        student_id=submission.student_id,
+        problem_text=submission.problem_text,
+        status="PENDING", # Initial status
+    )
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_submission)
+
+    # Call external LLM for analysis
+    llm_analysis_result = call_external_llm_for_analysis(db, submission.problem_text)
+    
+    concept_id = llm_analysis_result["concept_id"]
+    logical_path_text = llm_analysis_result["logical_path_text"]
+    manim_data_path = llm_analysis_result["manim_data_path"]
+    ai_vector_data = llm_analysis_result["vector_data"]
+
+    # Assign logical_path_text and concept_id to db_submission
+    db_submission.logical_path_text = logical_path_text
+    db_submission.concept_id = concept_id
+    db.commit() # Commit the changes to db_submission
+    db.refresh(db_submission) # Refresh db_submission to reflect committed changes
+
+    # Update StudentMastery based on the submission
+    mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
+    if mastery_entry:
+        # Update existing entry
+        update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
+    else:
+        # Create new entry
+        create_student_mastery(db, schemas.StudentMastery(
+            student_id=submission.student_id,
+            concept_id=concept_id,
+            mastery_score=70, # Placeholder score
+            status="IN_PROGRESS" # Placeholder status
+        ))
+
+    # Create a new vector history entry based on the submission
+    assessment_schema = schemas.AssessmentCreate(
+        student_id=submission.student_id,
+        assessment_type="AI_ANALYSIS",
+        source_ref_id=submission_id,
+        notes=f"Vector generated from submission {submission_id}",
+        vector_data=ai_vector_data # Use AI data from LLM analysis
+    )
+    db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
+
+    # Create LLMLog entry
+    llm_log_feedback_schema = schemas.LLMFeedback(
+        coach_feedback="", # No coach feedback at this stage
+        reason_code=None,
+    )
+    db_llm_log = create_llm_log_feedback(
+        db=db,
+        feedback=llm_log_feedback_schema,
+        source_submission_id=submission_id,
+        decision="ANALYSIS_COMPLETE",
+        model_version="V1_LLM_INTEGRATION", # Updated model version
+    )
+
+    # Create AnkiCard entry (V1 Simulation)
+    anki_question = f"What is the key concept related to '{submission.problem_text}'?"
+    anki_answer = f"The problem is primarily about '{concept_id}' and its logical path is: {logical_path_text}"
+    
+    # For V1, set next_review_date to tomorrow
+    next_review_date = datetime.now(UTC) + timedelta(days=1)
+
+    create_anki_card(
+        db=db,
+        student_id=submission.student_id,
+        llm_log_id=db_llm_log.log_id,
+        question=anki_question,
+        answer=anki_answer,
+        next_review_date=next_review_date,
+    )
+
+    return db_submission
+
+def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
+    """
+    Calls an external LLM API to analyze the problem text and return
+    identified concept, logical path, and 4-axis vector data.
+    """
+    headers = {"X-API-Key": LLM_API_KEY, "Content-Type": "application/json"}
+    payload = {"problem_text": problem_text}
+    
+    try:
+        # In a real scenario, you would make an actual HTTP request here.
+        # For now, we'll simulate the LLM's response.
+        # response = requests.post(LLM_API_URL, headers=headers, json=payload)
+        # response.raise_for_status() # Raise an exception for HTTP errors
+        # llm_response = response.json()
+
+        # Simulated LLM response for V1
+        llm_response = {}
+        if "이차함수" in problem_text:
+            llm_response = {
+                "concept_id": "C_이차함수",
+                "logical_path_text": f"LLM analysis: The problem '{problem_text}' is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties.",
+                "vector_data": {
+                    "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+                    "axis2_opt": 55, "axis2_piv": 50, "axis2_dia": 50,
+                    "axis3_con": 60, "axis3_pro": 55, "axis3_ret": 50,
+                    "axis4_acc": 60, "axis4_gri": 50,
+                }
+            }
+        elif "피타고라스" in problem_text:
+            llm_response = {
+                "concept_id": "C_피타고라스",
+                "logical_path_text": f"LLM analysis: The problem '{problem_text}' applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.",
+                "vector_data": {
+                    "axis1_geo": 65, "axis1_alg": 50, "axis1_ana": 50,
+                    "axis2_opt": 50, "axis2_piv": 55, "axis2_dia": 50,
+                    "axis3_con": 55, "axis3_pro": 60, "axis3_ret": 50,
+                    "axis4_acc": 50, "axis4_gri": 60,
+                }
+            }
+        else:
+            llm_response = {
+                "concept_id": "C_기본개념", # Default concept
+                "logical_path_text": f"LLM analysis: The problem '{problem_text}' involves basic mathematical concepts. Review fundamental principles.",
+                "vector_data": {
+                    "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
+                    "axis2_opt": 55, "axis2_piv": 55, "axis2_dia": 55,
+                    "axis3_con": 55, "axis3_pro": 55, "axis3_ret": 55,
+                    "axis4_acc": 55, "axis4_gri": 55,
+                }
+            }
+
+
+        # In a real scenario, you would parse the LLM's response
+        # to extract concept_id, logical_path_text, and vector_data.
+        
+        # Placeholder for LLM-identified concept (if LLM provides it)
+        llm_concept_id = llm_response.get("concept_id")
+        
+        concept = None
+        if llm_concept_id:
+            concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_id == llm_concept_id).first()
+        
+        if not concept:
+            # Fallback: try to find concept based on problem_text keywords if LLM didn't provide a valid one
+            # This is similar to the old search_concept_by_keyword logic
+            if "이차함수" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "이차함수").first()
+            elif "피타고라스" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "피타고라스").first()
+            # Add more keyword-based fallbacks or a default concept
+            if not concept:
+                # Default concept if nothing else matches
+                concept = db.query(models.ConceptsLibrary).first() # Get any concept for now
+
+        if not concept:
+            raise HTTPException(status_code=500, detail="LLM analysis failed to identify a concept and no fallback found.")
+
+        concept_id = concept.concept_id
+        manim_data_path = concept.manim_data_path if concept else "https://youtube.com/watch?v=default_video"
+
+        # Simulate logical path text from LLM response
+        logical_path_text = llm_response.get("logical_path_text", 
+                                             f"LLM generated logical path for '{problem_text}' related to '{concept.concept_name}'.")
+
+        # Simulate 4-axis vector data from LLM response
+        vector_data = llm_response.get("vector_data", {
+            "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
+            "axis2_opt": 55, "axis2_piv": 55, "axis2_dia": 55,
+            "axis3_con": 55, "axis3_pro": 55, "axis3_ret": 55,
+            "axis4_acc": 55, "axis4_gri": 55,
+        })
+        
+        # Ensure scores are within 0-100
+        for axis in vector_data:
+            vector_data[axis] = max(0, min(100, vector_data[axis]))
+
+        return {
+            "concept_id": concept_id,
+            "logical_path_text": logical_path_text,
+            "manim_data_path": manim_data_path,
+            "vector_data": vector_data
+        }
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling external LLM API: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to connect to LLM service: {e}")
+    except Exception as e:
+        logger.error(f"Error processing LLM response: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing LLM response: {e}")
+
+# Submissions
+def create_submission(db: Session, submission: schemas.SubmissionCreate):
+    submission_id = f"sub_{uuid.uuid4().hex[:8]}"
+    db_submission = models.Submission(
+        submission_id=submission_id,
+        student_id=submission.student_id,
+        problem_text=submission.problem_text,
+        status="PENDING", # Initial status
+    )
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_submission)
+
+    # Call external LLM for analysis
+    llm_analysis_result = call_external_llm_for_analysis(db, submission.problem_text)
+    
+    concept_id = llm_analysis_result["concept_id"]
+    logical_path_text = llm_analysis_result["logical_path_text"]
+    manim_data_path = llm_analysis_result["manim_data_path"]
+    ai_vector_data = llm_analysis_result["vector_data"]
+
+    # Assign logical_path_text and concept_id to db_submission
+    db_submission.logical_path_text = logical_path_text
+    db_submission.concept_id = concept_id
+    db.commit() # Commit the changes to db_submission
+    db.refresh(db_submission) # Refresh db_submission to reflect committed changes
+
+    # Update StudentMastery based on the submission
+    mastery_entry = get_student_mastery(db, submission.student_id, concept_id)
+    if mastery_entry:
+        # Update existing entry
+        update_student_mastery(db, submission.student_id, concept_id, 70, "IN_PROGRESS")
+    else:
+        # Create new entry
+        create_student_mastery(db, schemas.StudentMastery(
+            student_id=submission.student_id,
+            concept_id=concept_id,
+            mastery_score=70, # Placeholder score
+            status="IN_PROGRESS" # Placeholder status
+        ))
+
+    # Create a new vector history entry based on the submission
+    assessment_schema = schemas.AssessmentCreate(
+        student_id=submission.student_id,
+        assessment_type="AI_ANALYSIS",
+        source_ref_id=submission_id,
+        notes=f"Vector generated from submission {submission_id}",
+        vector_data=ai_vector_data # Use AI data from LLM analysis
+    )
+    db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
+
+    # Create LLMLog entry
+    llm_log_feedback_schema = schemas.LLMFeedback(
+        coach_feedback="", # No coach feedback at this stage
+        reason_code=None,
+    )
+    db_llm_log = create_llm_log_feedback(
+        db=db,
+        feedback=llm_log_feedback_schema,
+        source_submission_id=submission_id,
+        decision="ANALYSIS_COMPLETE",
+        model_version="V1_LLM_INTEGRATION", # Updated model version
+    )
+
+    # Create AnkiCard entry (V1 Simulation)
+    anki_question = f"What is the key concept related to '{submission.problem_text}'?"
+    anki_answer = f"The problem is primarily about '{concept_id}' and its logical path is: {logical_path_text}"
+    
+    # For V1, set next_review_date to tomorrow
+    next_review_date = datetime.now(UTC) + timedelta(days=1)
+
+    create_anki_card(
+        db=db,
+        student_id=submission.student_id,
+        llm_log_id=db_llm_log.log_id,
+        question=anki_question,
+        answer=anki_answer,
+        next_review_date=next_review_date,
+    )
+
+    return db_submission

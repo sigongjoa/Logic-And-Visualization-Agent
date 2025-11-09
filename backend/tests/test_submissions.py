@@ -4,7 +4,8 @@ from backend.main import app, get_db
 from backend import models, crud
 from backend.models import Base
 from sqlalchemy import create_engine
-from datetime import datetime, timedelta # Added timedelta
+from datetime import datetime, timedelta, UTC # Added UTC
+from unittest.mock import patch # Added patch
 
 # Setup the Test Database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -24,7 +25,21 @@ app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
-def test_create_submission():
+@patch('backend.crud.requests.post')
+def test_create_submission(mock_post):
+    # Configure the mock to return a specific response
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {
+        "concept_id": "C_이차함수",
+        "logical_path_text": "LLM analysis: The problem '이차함수와 그래프' is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties.",
+        "vector_data": {
+            "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+            "axis2_opt": 55, "axis2_piv": 50, "axis2_dia": 50,
+            "axis3_con": 60, "axis3_pro": 55, "axis3_ret": 50,
+            "axis4_acc": 60, "axis4_gri": 50,
+        }
+    }
+
     # 1. Setup: Create a student, curriculum, and concept
     db = TestingSessionLocal()
     # Clear ConceptsLibrary to ensure a clean state
@@ -74,7 +89,7 @@ def test_create_submission():
     data = response.json()
     assert data["status"] == "PENDING"
     assert "submission_id" in data
-    assert data["logical_path_text"].startswith("The problem '이차함수와 그래프' is analyzed.")
+    assert data["logical_path_text"] == "LLM analysis: The problem '이차함수와 그래프' is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties."
     assert data["concept_id"] == "C_이차함수" # Assert the correct concept_id based on the problem text
     assert data["manim_content_url"] == "http://example.com/manim/C_이차함수"
 
@@ -95,7 +110,7 @@ def test_create_submission():
     llm_log_entry = db.query(models.LLMLog).filter_by(source_submission_id=data["submission_id"]).first()
     assert llm_log_entry is not None
     assert llm_log_entry.decision == "ANALYSIS_COMPLETE"
-    assert llm_log_entry.model_version == "V1_SIMULATED"
+    assert llm_log_entry.model_version == "V1_LLM_INTEGRATION" # Updated model version
 
     # Verify AnkiCard entry
     anki_card_entry = db.query(models.AnkiCard).filter_by(student_id=student_id, llm_log_id=llm_log_entry.log_id).first()
@@ -105,7 +120,21 @@ def test_create_submission():
     assert anki_card_entry.next_review_date is not None
     db.close()
 
-def test_create_submission_and_update_vector():
+@patch('backend.crud.requests.post')
+def test_create_submission_and_update_vector(mock_post):
+    # Configure the mock to return a specific response for the second test
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {
+        "concept_id": "C_피타고라스",
+        "logical_path_text": "LLM analysis: The problem '피타고라스의 정리' applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.",
+        "vector_data": {
+            "axis1_geo": 65, "axis1_alg": 50, "axis1_ana": 50,
+            "axis2_opt": 50, "axis2_piv": 55, "axis2_dia": 50,
+            "axis3_con": 55, "axis3_pro": 60, "axis3_ret": 50,
+            "axis4_acc": 50, "axis4_gri": 60,
+        }
+    }
+
     # 1. Setup: Create a student, curriculum, and concept
     db = TestingSessionLocal()
     # Clear ConceptsLibrary to ensure a clean state
@@ -125,7 +154,7 @@ def test_create_submission_and_update_vector():
         vector_id="vec_initial_2",
         assessment_id="asmt_initial_2",
         student_id=student_id,
-        created_at=datetime.utcnow() - timedelta(days=10), # Set to an older date
+        created_at=datetime.now(UTC) - timedelta(days=10), # Set to an older date
         axis1_geo=60, axis1_alg=60, axis1_ana=60,
         axis2_opt=60, axis2_piv=60, axis2_dia=60,
         axis3_con=60, axis3_pro=60, axis3_ret=60,
@@ -160,6 +189,8 @@ def test_create_submission_and_update_vector():
     assert response.status_code == 201
     data = response.json()
     assert data["concept_id"] == "C_피타고라스"
+    assert data["logical_path_text"] == "LLM analysis: The problem '피타고라스의 정리' applies the Pythagorean theorem. Focus on identifying right triangles and side lengths."
+
 
     # 5. Verify the vector was updated
     db.close() # Close the session used for setup
@@ -170,15 +201,15 @@ def test_create_submission_and_update_vector():
 
     assert new_vector is not None
     assert new_vector.vector_id != "vec_initial_2"
-    assert new_vector.axis1_geo == 60
-    assert new_vector.axis3_pro == 55
-    assert new_vector.axis4_acc == 50
+    assert new_vector.axis1_geo == 65 # Updated expected value
+    assert new_vector.axis3_pro == 60 # Updated expected value
+    assert new_vector.axis4_acc == 50 # Updated expected value
 
     # Verify LLMLog entry
     llm_log_entry = db.query(models.LLMLog).filter_by(source_submission_id=data["submission_id"]).first()
     assert llm_log_entry is not None
     assert llm_log_entry.decision == "ANALYSIS_COMPLETE"
-    assert llm_log_entry.model_version == "V1_SIMULATED"
+    assert llm_log_entry.model_version == "V1_LLM_INTEGRATION" # Updated model version
 
     # Verify AnkiCard entry
     anki_card_entry = db.query(models.AnkiCard).filter_by(student_id=student_id, llm_log_id=llm_log_entry.log_id).first()
