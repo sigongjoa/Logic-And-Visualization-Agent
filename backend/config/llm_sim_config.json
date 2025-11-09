@@ -1,0 +1,41 @@
+[
+  {
+    "keywords": ["이차함수", "그래프"],
+    "response": {
+      "concept_id": "C_이차함수",
+      "logical_path_text": "LLM analysis: The problem is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties.",
+      "vector_data": {
+        "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+        "axis2_opt": 55, "axis2_piv": 50, "axis2_dia": 50,
+        "axis3_con": 60, "axis3_pro": 55, "axis3_ret": 50,
+        "axis4_acc": 60, "axis4_gri": 50
+      }
+    }
+  },
+  {
+    "keywords": ["피타고라스", "정리"],
+    "response": {
+      "concept_id": "C_피타고라스",
+      "logical_path_text": "LLM analysis: The problem applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.",
+      "vector_data": {
+        "axis1_geo": 65, "axis1_alg": 50, "axis1_ana": 50,
+        "axis2_opt": 50, "axis2_piv": 55, "axis2_dia": 50,
+        "axis3_con": 55, "axis3_pro": 60, "axis3_ret": 50,
+        "axis4_acc": 50, "axis4_gri": 60
+      }
+    }
+  },
+  {
+    "keywords": ["미분", "적분"],
+    "response": {
+      "concept_id": "C_미적분",
+      "logical_path_text": "LLM analysis: The problem involves calculus concepts like differentiation and integration. Focus on applying fundamental theorems.",
+      "vector_data": {
+        "axis1_geo": 50, "axis1_alg": 50, "axis1_ana": 70,
+        "axis2_opt": 60, "axis2_piv": 55, "axis2_dia": 60,
+        "axis3_con": 70, "axis3_pro": 65, "axis3_ret": 55,
+        "axis4_acc": 65, "axis4_gri": 55
+      }
+    }
+  }
+]

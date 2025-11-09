@@ -5,6 +5,7 @@ import SubmissionForm from './components/SubmissionForm';
 import SubmissionResult from './components/SubmissionResult';
 import CoachDashboard from './components/CoachDashboard'; // New import
 import StudentDetail from './components/StudentDetail';   // New import
+import CoachReportReview from './components/CoachReportReview'; // New import
 import './App.css';
 
 function App() {
@@ -25,6 +26,9 @@ function App() {
             <li>
               <Link to="/coach">Coach Dashboard</Link> {/* New navigation link */}
             </li>
+            <li>
+              <Link to="/coach/reports">Coach Report Review</Link> {/* New navigation link */}
+            </li>
           </ul>
         </nav>
 
@@ -35,6 +39,7 @@ function App() {
           <Route path="/submission-result" element={<SubmissionResult />} />
           <Route path="/coach" element={<CoachDashboard />} /> {/* New route */}
           <Route path="/coach/students/:studentId" element={<StudentDetail />} /> {/* New route */}
+          <Route path="/coach/reports" element={<CoachReportReview />} /> {/* New route */}
         </Routes>
       </div>
     </Router>

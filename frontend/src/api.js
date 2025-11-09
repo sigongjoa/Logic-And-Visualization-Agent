@@ -70,3 +70,12 @@ export const getStudentMastery = async (studentId) => {
   }
   return response.json();
 };
+
+export const getDraftReports = async () => {
+  const response = await fetch(`${API_BASE_URL}/reports/drafts`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to fetch draft reports');
+  }
+  return response.json();
+};

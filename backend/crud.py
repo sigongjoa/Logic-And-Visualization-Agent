@@ -1,22 +1,46 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from datetime import datetime, UTC, timedelta # Added timedelta
+from datetime import datetime, UTC, timedelta
 from typing import Optional, List
 import uuid
 import logging
-from . import kakao_sender # Import the kakao_sender
-import requests # Added requests
-from fastapi import HTTPException # Moved import to top
+from . import kakao_sender
+import requests
+from fastapi import HTTPException
+import json
+import os
 
 logger = logging.getLogger(__name__)
 
 # Placeholder for external LLM API configuration
-LLM_API_URL = "http://localhost:8001/llm-analysis" # Example URL
-LLM_API_KEY = "your_llm_api_key" # Replace with actual API key or environment variable
+LLM_API_URL = "http://localhost:8001/llm-analysis"
+LLM_API_KEY = "your_llm_api_key"
 
 # Placeholder for external Manim Agent API configuration
-MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate" # Example URL
-MANIM_AGENT_API_KEY = "your_manim_api_key" # Replace with actual API key or environment variable
+MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate"
+MANIM_AGENT_API_KEY = "your_manim_api_key"
+
+# Load LLM simulation configuration
+LLM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "llm_sim_config.json")
+llm_sim_configs = []
+try:
+    with open(LLM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
+        llm_sim_configs = json.load(f)
+except FileNotFoundError:
+    logger.warning(f"LLM simulation config file not found at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
+except json.JSONDecodeError:
+    logger.error(f"Error decoding LLM simulation config file at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
+
+# Load Manim simulation configuration
+MANIM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "manim_sim_config.json")
+manim_sim_configs = []
+try:
+    with open(MANIM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
+        manim_sim_configs = json.load(f)
+except FileNotFoundError:
+    logger.warning(f"Manim simulation config file not found at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
+except json.JSONDecodeError:
+    logger.error(f"Error decoding Manim simulation config file at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
 
 def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
     """
@@ -37,13 +61,13 @@ def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
         # manim_response = response.json()
         # return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
 
-        # Simulated Manim Agent response
-        if "이차함수" in concept_id:
-            return "https://youtube.com/watch?v=quadratic_function_manim"
-        elif "피타고라스" in concept_id:
-            return "https://youtube.com/watch?v=pythagorean_theorem_manim"
-        else:
-            return "https://youtube.com/watch?v=default_manim_video"
+        # Simulated Manim Agent response from config
+        for config_entry in manim_sim_configs:
+            if config_entry.get("concept_id") == concept_id:
+                return config_entry["manim_data_path"]
+
+        # Fallback to default if not found in config
+        return "https://youtube.com/watch?v=default_manim_video"
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Error calling external Manim Agent API: {e}")

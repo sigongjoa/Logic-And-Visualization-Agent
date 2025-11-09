@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from backend.main import app, get_db
 from backend import models, crud
 from sqlalchemy import create_engine
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone # Added timezone
 import pytest
 from backend.scripts.generate_weekly_reports import generate_weekly_reports
 
@@ -29,8 +29,8 @@ client = TestClient(app)
 def create_dummy_report(db: Session, student_id: str, status: str):
     report = models.WeeklyReport(
         student_id=student_id,
-        period_start=datetime(2025, 1, 1),
-        period_end=datetime(2025, 1, 7),
+        period_start=datetime(2025, 1, 1, tzinfo=timezone.utc), # Use timezone-aware datetime
+        period_end=datetime(2025, 1, 7, tzinfo=timezone.utc),   # Use timezone-aware datetime
         status=status,
         ai_summary="Test summary",
         vector_start_id="vec_start",
@@ -95,7 +95,7 @@ def test_send_report():
     
     # Ensure parent exists and is associated
     parent_id = 1 # Assuming parent_id is auto-incremented, or use a fixed ID
-    if not db.query(models.Parent).filter_by(parent_name="Test Parent").first():
+    if not db.query(models.Parent).filter_by(parent_id=parent_id).first():
         db.add(models.Parent(parent_id=parent_id, parent_name="Test Parent", kakao_user_id="kakao_test_user"))
         db.commit()
     
@@ -149,7 +149,7 @@ async def test_generate_weekly_reports():
     db.query(models.StudentMastery).filter_by(student_id=student_id).delete()
     db.commit()
 
-    today = datetime.utcnow()
+    today = datetime.now(timezone.utc) # Updated to timezone-aware datetime
     one_week_ago = today - timedelta(days=7)
 
     # Create vector history
@@ -216,17 +216,16 @@ async def test_generate_weekly_reports():
     assert sent_report.vector_start_id == "vec_report_1"
     assert sent_report.vector_end_id == "vec_report_3"
 
-    # Assert specific content in the AI summary
+    # Assert specific content in the AI summary (updated for Korean and qualitative summary)
     student_name = db.query(models.Student).filter_by(student_id=student_id).first().student_name
-    assert f"Weekly Report for {student_name}" in sent_report.ai_summary
-    assert "--- 4-Axis Model Progress ---" in sent_report.ai_summary
-    assert "Start of week (Accuracy/Grit): 50/50" in sent_report.ai_summary
-    assert "End of week (Accuracy/Grit): 60/60" in sent_report.ai_summary
-    assert "Weekly change in Accuracy: +10" in sent_report.ai_summary
-    assert "Weekly change in Grit: +10" in sent_report.ai_summary
-    assert "--- Submissions This Week ---" in sent_report.ai_summary
-    assert "Problem: 'Report Problem 1'" in sent_report.ai_summary
-    assert "Problem: 'Report Problem 2'" in sent_report.ai_summary
-    assert "--- Mastery Updates This Week ---" in sent_report.ai_summary
-    assert f"- Concept: {concept_id_math}, Score: 75, Status: IN_PROGRESS" in sent_report.ai_summary
+    assert f"주간 학습 리포트 - {student_name}" in sent_report.ai_summary
+    assert "4축 모델 변화" in sent_report.ai_summary
+    assert "이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다." in sent_report.ai_summary
+    assert "난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다." in sent_report.ai_summary
+    assert "이번 주 학습 활동" in sent_report.ai_summary
+    assert "총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다." in sent_report.ai_summary
+    assert "미완료 문제: Report Problem 2" in sent_report.ai_summary
+    assert "개념 숙련도 변화" in sent_report.ai_summary
+    assert "숙련도가 향상된 개념: C_MATH_TEST" in sent_report.ai_summary
+    assert "전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다." in sent_report.ai_summary
     db.close()

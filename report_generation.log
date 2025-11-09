@@ -2405,3 +2405,199 @@ Weekly change in Grit: +10
 
 
 Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7152980c1c50>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7152980c1c50>
+Generated summary: Weekly Report for Coach Student 1 (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 20/20
+End of week (Accuracy/Grit): 20/20
+Weekly change in Accuracy: 0
+Weekly change in Grit: 0
+
+--- Submissions This Week ---
+- Problem: 'Problem 1' (Concept: C_COACH_1)
+  Status: COMPLETE, Logical Path: Path 1...
+- Problem: 'Problem 2' (Concept: C_COACH_2)
+  Status: PENDING, Logical Path: Path 2...
+
+--- No Mastery Updates This Week ---
+
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7152980d7770>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7152980d6f90>
+Generated summary: Weekly Report for Test Report Student (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 50/50
+End of week (Accuracy/Grit): 60/60
+Weekly change in Accuracy: +10
+Weekly change in Grit: +10
+
+--- Submissions This Week ---
+- Problem: 'Report Problem 1' (Concept: C_MATH_TEST)
+  Status: COMPLETE, Logical Path: Logical path for problem 1...
+- Problem: 'Report Problem 2' (Concept: C_MATH_TEST)
+  Status: PENDING, Logical Path: Logical path for problem 2...
+
+--- Mastery Updates This Week ---
+- Concept: C_MATH_TEST, Score: 75, Status: IN_PROGRESS
+
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7759a8cc9c50>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7759a8cc9c50>
+Generated summary: Weekly Report for Coach Student 1 (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 20/20
+End of week (Accuracy/Grit): 20/20
+Weekly change in Accuracy: 0
+Weekly change in Grit: 0
+
+--- Submissions This Week ---
+- Problem: 'Problem 1' (Concept: C_COACH_1)
+  Status: COMPLETE, Logical Path: Path 1...
+- Problem: 'Problem 2' (Concept: C_COACH_2)
+  Status: PENDING, Logical Path: Path 2...
+
+--- No Mastery Updates This Week ---
+
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7759a8ce3770>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7759a8ce2f90>
+Generated summary: Weekly Report for Test Report Student (Period: 2025-11-02 to 2025-11-09)
+
+--- 4-Axis Model Progress ---
+Start of week (Accuracy/Grit): 50/50
+End of week (Accuracy/Grit): 60/60
+Weekly change in Accuracy: +10
+Weekly change in Grit: +10
+
+--- Submissions This Week ---
+- Problem: 'Report Problem 1' (Concept: C_MATH_TEST)
+  Status: COMPLETE, Logical Path: Logical path for problem 1...
+- Problem: 'Report Problem 2' (Concept: C_MATH_TEST)
+  Status: PENDING, Logical Path: Logical path for problem 2...
+
+--- Mastery Updates This Week ---
+- Concept: C_MATH_TEST, Score: 75, Status: IN_PROGRESS
+
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7b3499fe8c90>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7b3499fe8c90>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-02 ~ 2025-11-09)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7b349a002970>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7b349a002510>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-02 ~ 2025-11-09)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x71888dbd0830>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x71888dbd0830>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-02 ~ 2025-11-09)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x71888dbf97f0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x71888dbf9390>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-02 ~ 2025-11-09)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student

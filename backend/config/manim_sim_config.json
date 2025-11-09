@@ -1,0 +1,14 @@
+[
+  {
+    "concept_id": "C_이차함수",
+    "manim_data_path": "https://youtube.com/watch?v=quadratic_function_manim_config"
+  },
+  {
+    "concept_id": "C_피타고라스",
+    "manim_data_path": "https://youtube.com/watch?v=pythagorean_theorem_manim_config"
+  },
+  {
+    "concept_id": "C_미적분",
+    "manim_data_path": "https://youtube.com/watch?v=calculus_manim_config"
+  }
+]
