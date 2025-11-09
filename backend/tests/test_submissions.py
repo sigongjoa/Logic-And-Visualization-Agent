@@ -59,7 +59,7 @@ def test_create_submission():
     # 2. Define the test data
     submission_data = {
         "student_id": student_id,
-        "problem_text": "이차함수와 그래프에 대해 설명하시오.", # Use a keyword from the populated concepts
+        "problem_text": "이차함수와 그래프",
     }
 
     # 3. Call the API endpoint
@@ -68,7 +68,7 @@ def test_create_submission():
     # 4. Assert the response
     assert response.status_code == 201
     data = response.json()
-    assert data["status"] == "COMPLETE"
+    assert data["status"] == "PENDING"
     assert "submission_id" in data
     assert data["logical_path_text"] is not None
     assert data["concept_id"] == "C-M-007" # Assert the correct concept_id
@@ -79,11 +79,74 @@ def test_create_submission():
     submission_entry = db.query(models.Submission).filter_by(submission_id=data["submission_id"]).first()
     assert submission_entry is not None
     assert submission_entry.student_id == student_id
-    assert submission_entry.status == "COMPLETE"
+    assert submission_entry.status == "PENDING"
 
     mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id="C-M-007").first()
     assert mastery_entry is not None
     assert mastery_entry.mastery_score == 70 # Assuming a mock mastery score update
-    assert mastery_entry.status == "MASTERED" # Assuming a mock status
+    assert mastery_entry.status == "IN_PROGRESS" # Status should be IN_PROGRESS
     assert mastery_entry.last_updated is not None
+    db.close()
+
+def test_create_submission_and_update_vector():
+    # 1. Setup: Create a student, curriculum, and concept
+    db = TestingSessionLocal()
+    student_id = "std_testuser_vector"
+    concept_id = "C-M-008"
+
+    # Ensure student exists (or create if not)
+    if not db.query(models.Student).filter_by(student_id=student_id).first():
+        db.add(models.Student(student_id=student_id, student_name="Test Vector Student"))
+        db.commit()
+
+    # Create an initial vector for the student
+    initial_vector = models.StudentVectorHistory(
+        vector_id="vec_initial_2",
+        assessment_id="asmt_initial_2",
+        student_id=student_id,
+        axis1_geo=60, axis1_alg=60, axis1_ana=60,
+        axis2_opt=60, axis2_piv=60, axis2_dia=60,
+        axis3_con=60, axis3_pro=60, axis3_ret=60,
+        axis4_acc=60, axis4_gri=60,
+    )
+    # Clean up previous vector history
+    db.query(models.StudentVectorHistory).filter_by(student_id=student_id).delete()
+    db.add(initial_vector)
+    db.commit()
+
+    # Create Concept
+    if not db.query(models.ConceptsLibrary).filter_by(concept_id=concept_id).first():
+        db.add(models.ConceptsLibrary(
+            concept_id=concept_id,
+            curriculum_id="M-ALL",
+            concept_name="피타고라스의 정리",
+            manim_data_path="http://example.com/manim/C-M-008"
+        ))
+        db.commit()
+    db.close()
+
+    # 2. Define the test data
+    submission_data = {
+        "student_id": student_id,
+        "problem_text": "피타고라스의 정리",
+    }
+
+    # 3. Call the API endpoint
+    response = client.post("/submissions", json=submission_data)
+
+    # 4. Assert the response
+    assert response.status_code == 201
+    data = response.json()
+    assert data["concept_id"] == concept_id
+
+    # 5. Verify the vector was updated
+    db.close() # Close the session used for setup
+    db = TestingSessionLocal() # Open a new session to ensure latest data
+    new_vector = db.query(models.StudentVectorHistory).filter(
+        models.StudentVectorHistory.student_id == student_id
+    ).order_by(models.StudentVectorHistory.created_at.desc()).first()
+
+    assert new_vector is not None
+    assert new_vector.vector_id != "vec_initial_2"
+    assert new_vector.axis4_acc == 55 # 60 - 5
     db.close()

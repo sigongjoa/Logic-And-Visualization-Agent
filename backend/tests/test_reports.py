@@ -3,7 +3,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from backend.main import app, get_db
 from backend import models, crud
 from sqlalchemy import create_engine
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytest
+from backend.scripts.generate_weekly_reports import generate_weekly_reports
 
 # Setup for the test database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -84,8 +86,24 @@ def test_finalize_report():
     db.close()
 
 def test_send_report():
-    # 1. Setup: Create a finalized report
+    # 1. Setup: Create a finalized report, a student, and a parent
     db = TestingSessionLocal()
+    # Ensure student exists
+    if not db.query(models.Student).filter_by(student_id="std_send_user").first():
+        db.add(models.Student(student_id="std_send_user", student_name="Test Send User"))
+        db.commit()
+    
+    # Ensure parent exists and is associated
+    parent_id = 1 # Assuming parent_id is auto-incremented, or use a fixed ID
+    if not db.query(models.Parent).filter_by(parent_name="Test Parent").first():
+        db.add(models.Parent(parent_id=parent_id, parent_name="Test Parent", kakao_user_id="kakao_test_user"))
+        db.commit()
+    
+    # Associate student and parent
+    if not db.query(models.student_parent_association).filter_by(student_id="std_send_user", parent_id=parent_id).first():
+        db.execute(models.student_parent_association.insert().values(student_id="std_send_user", parent_id=parent_id))
+        db.commit()
+
     finalized_report = create_dummy_report(db, "std_send_user", "FINALIZED")
     db.close()
 
@@ -102,4 +120,69 @@ def test_send_report():
     db = TestingSessionLocal()
     sent_report = db.query(models.WeeklyReport).filter_by(report_id=finalized_report.report_id).first()
     assert sent_report.status == "SENT"
+    db.close()
+
+@pytest.mark.asyncio
+async def test_generate_weekly_reports():
+    # 1. Create a student (if not already exists)
+    db = TestingSessionLocal()
+    student_id = "test_student_report"
+    if not db.query(models.Student).filter_by(student_id=student_id).first():
+        db.add(models.Student(student_id=student_id, student_name="Test Report Student"))
+        db.commit()
+
+    # Ensure parent exists and is associated
+    parent_id = 1 # Use a fixed ID for testing
+    if not db.query(models.Parent).filter_by(parent_id=parent_id).first():
+        db.add(models.Parent(parent_id=parent_id, parent_name="Test Report Parent", kakao_user_id="kakao_test_report_user"))
+        db.commit()
+    
+    # Associate student and parent
+    if not db.query(models.student_parent_association).filter_by(student_id=student_id, parent_id=parent_id).first():
+        db.execute(models.student_parent_association.insert().values(student_id=student_id, parent_id=parent_id))
+        db.commit()
+
+    # 2. Create some vector history for the student
+    # Clean up previous vector history data
+    db.query(models.StudentVectorHistory).filter_by(student_id=student_id).delete()
+    db.commit()
+    today = datetime.utcnow()
+    db.add(models.StudentVectorHistory(
+        vector_id="vec_report_1", assessment_id="asmt_report_1", student_id=student_id,
+        created_at=today - timedelta(days=6),
+        axis1_geo=50, axis1_alg=50, axis1_ana=50, axis2_opt=50, axis2_piv=50,
+        axis2_dia=50, axis3_con=50, axis3_pro=50, axis3_ret=50, axis4_acc=50, axis4_gri=50
+    ))
+    db.add(models.StudentVectorHistory(
+        vector_id="vec_report_2", assessment_id="asmt_report_2", student_id=student_id,
+        created_at=today - timedelta(days=3),
+        axis1_geo=55, axis1_alg=55, axis1_ana=55, axis2_opt=55, axis2_piv=55,
+        axis2_dia=55, axis3_con=55, axis3_pro=55, axis3_ret=55, axis4_acc=55, axis4_gri=55
+    ))
+    db.add(models.StudentVectorHistory(
+        vector_id="vec_report_3", assessment_id="asmt_report_3", student_id=student_id,
+        created_at=today,
+        axis1_geo=60, axis1_alg=60, axis1_ana=60, axis2_opt=60, axis2_piv=60,
+        axis2_dia=60, axis3_con=60, axis3_pro=60, axis3_ret=60, axis4_acc=60, axis4_gri=60
+    ))
+    db.commit()
+
+    # 3. Run the report generation script
+    await generate_weekly_reports(db=db)
+
+    # 4. Retrieve the newly created report
+    reports = db.query(models.WeeklyReport).filter_by(student_id=student_id).all()
+    assert len(reports) == 1
+    new_report = reports[0]
+
+    # 5. Send the report
+    crud.send_report(db, new_report.report_id)
+
+    # 6. Assertions
+    # Verify that the report status is SENT after sending
+    sent_report = db.query(models.WeeklyReport).filter_by(report_id=new_report.report_id).first()
+    assert sent_report.status == "SENT"
+    assert sent_report.ai_summary is not None
+    assert sent_report.vector_start_id == "vec_report_1"
+    assert sent_report.vector_end_id == "vec_report_3"
     db.close()
