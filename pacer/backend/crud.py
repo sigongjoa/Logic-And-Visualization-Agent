@@ -65,3 +65,6 @@ def send_report(db: Session, report_id: int):
         db.commit()
         db.refresh(db_report)
     return db_report
+
+def get_vector_history_by_student(db: Session, student_id: str):
+    return db.query(models.StudentVectorHistory).filter(models.StudentVectorHistory.student_id == student_id).all()

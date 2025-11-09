@@ -45,9 +45,9 @@ Project: ATLAS - 통합 데이터베이스 명세서 (V1)
 | student_id | VARCHAR(50) | PK, FK (Students) | 학생 ID |
 | parent_id | INT | PK, FK (Parents) | 학부모 ID |
 
-2. 🧠 4축 잠재 공간 모델 테이블
+2. 🧠 4+1축 학생 모델 테이블
 
-학생의 '인지 지도'를 그리고, 그 '성장 이력'을 추적하는 시스템의 핵심입니다.
+학생의 '학습 역량(How)'을 측정하는 **4축 잠재 공간 모델**과 '학습 진도(What)'를 추적하는 **커리큘럼 축**을 정의합니다.
 
 2.1. Assessments (진단 이벤트)
 
@@ -82,21 +82,56 @@ Project: ATLAS - 통합 데이터베이스 명세서 (V1)
 | axis4_acc | TINYINT | NOT NULL, CHECK(0-100) | (축4) 실행 지구력: 연산 정확성 (0-100) |
 | axis4_gri | TINYINT | NOT NULL, CHECK(0-100) | (축4) 실행 지구력: 난이도 내성 (0-100) |
 
-3. 📚 학습/코칭 활동 테이블
+3. 🗺️ 지식 그래프 및 커리큘럼 축 테이블
 
-V1 전략(텍스트 해설 + 콘텐츠 라이브러리)을 지원합니다.
+커리큘럼을 '지식 지도'로 정의하고, 학생의 '지도 정복 상태'를 추적합니다.
 
-3.1. Concepts_Library (Manim 콘텐츠 라이브러리)
+3.1. Curriculums (커리큘럼 정보)
 
-V1에서 '미리 만들어 둘' Manim 애니메이션의 메타데이터입니다.
+(e.g., '중등 수학(상)', '수학 I', '미적분')
+| 필드명 | 데이터 타입 | 제약 | 설명 |
+| :--- | :--- | :--- | :--- |
+| curriculum_id | VARCHAR(50) | PK | 커리큘럼 ID (e.g., MATH-01) |
+| curriculum_name | VARCHAR(100) | NOT NULL | 커리큘럼 이름 (e.g., "중등 수학(상)") |
+| description | TEXT | | |
+
+3.2. Concepts_Library (개념 노드)
+
+기존 명세서의 Concepts_Library를 '커리큘럼'과 연결합니다.
 | 필드명 | 데이터 타입 | 제약 | 설명 |
 | :--- | :--- | :--- | :--- |
 | concept_id | VARCHAR(50) | PK | 개념 ID (e.g., C-001) |
+| curriculum_id | VARCHAR(50) | FK (Curriculums) | 이 개념이 속한 커리큘럼 |
 | concept_name | VARCHAR(100) | NOT NULL | 개념 이름 (e.g., "근의 공식") |
-| manim_data_path| VARCHAR(255)| NOT NULL | 시각화 콘텐츠 경로 (e.g., https://youtube.com/watch?v=...) |
+| manim_data_path | VARCHAR(255) | | (V1) Manim 콘텐츠 경로 |
 | description | TEXT | NULL | 개념에 대한 간단한 설명 |
 
-3.2. Submissions (학생 제출물)
+3.3. Concept_Relations (개념 관계: 지식 그래프)
+
+(e.g., '근의 공식'을 배우려면 '이차방정식'을 알아야 한다)
+| 필드명 | 데이터 타입 | 제약 | 설명 |
+| :--- | :--- | :--- | :--- |
+| relation_id | SERIAL | PK | |
+| from_concept_id | VARCHAR(50) | FK (Concepts_Library) | (e.g., '근의 공식') |
+| to_concept_id | VARCHAR(50) | FK (Concepts_Library) | (e.g., '이차방정식') |
+| relation_type | VARCHAR(20) | | 관계 (e.g., REQUIRES, EXPANDS) |
+
+3.4. Student_Mastery (학생별 개념 숙련도)
+
+이 테이블이 '커리큘럼 축'의 실체입니다.
+| 필드명 | 데이터 타입 | 제약 | 설명 |
+| :--- | :--- | :--- | :--- |
+| student_id | VARCHAR(50) | PK, FK (Students) | 학생 ID |
+| concept_id | VARCHAR(50) | PK, FK (Concepts_Library) | 개념 ID |
+| mastery_score | TINYINT | NOT NULL, CHECK(0-100) | 숙련도 점수 (0~100) |
+| status | VARCHAR(20) | | 상태 (e.g., NOT_STARTED, IN_PROGRESS, MASTERED) |
+| last_updated | TIMESTAMPTZ | | 마지막 갱신일 |
+
+4. 📚 학습/코칭 활동 테이블
+
+V1 전략(텍스트 해설 + 콘텐츠 라이브러리)을 지원합니다.
+
+4.1. Submissions (학생 제출물)
 
 학생의 학습 활동(AI 과제)과 AI의 분석 결과를 저장하는 핵심 연결고리입니다.
 | 필드명 | 데이터 타입 | 제약 | 설명 |
@@ -110,7 +145,7 @@ V1에서 '미리 만들어 둘' Manim 애니메이션의 메타데이터입니�
 | concept_id | VARCHAR(50) | FK (Concepts_Library), NULL| [Meta-RAG 결과] AI가 식별한 관련 개념 ID |
 | student_answer | TEXT | NULL | 학생의 최종 답안 (진단평가용) |
 
-3.3. Coach_Memos (코치 정성적 메모)
+4.2. Coach_Memos (코치 정성적 메모)
 
 코치님이 오프라인에서 관찰한 내용을 기록합니다.
 | 필드명 | 데이터 타입 | 제약 | 설명 |
@@ -121,11 +156,11 @@ V1에서 '미리 만들어 둘' Manim 애니메이션의 메타데이터입니�
 | memo_text | TEXT | NOT NULL | (e.g., "피벗 사고 훈련에 집중함") |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT now()| 작성 시간 |
 
-4. 📈 MLOps 및 리포팅 테이블
+5. 📈 MLOps 및 리포팅 테이블
 
 코치의 피드백(AI 개선용)과 학부모 리포트(발송용)를 관리합니다.
 
-4.1. LLM_Logs (AI 판단 및 코치 피드백 로그)
+5.1. LLM_Logs (AI 판단 및 코치 피드백 로그)
 
 Pacer의 Anki 카드 생성 판단 등, AI의 세부 결정을 기록하고 코치의 피드백을 받습니다.
 | 필드명 | 데이터 타입 | 제약 | 설명 |
@@ -138,7 +173,7 @@ Pacer의 Anki 카드 생성 판단 등, AI의 세부 결정을 기록하고 코�
 | reason_code | VARCHAR(50) | NULL | 피드백 사유 (e.g., SIMPLE_MISTAKE) |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT now()| 로그 생성 시간 |
 
-4.2. Anki_Cards (학생용 Anki 카드)
+5.2. Anki_Cards (학생용 Anki 카드)
 
 | 필드명 | 데이터 타입 | 제약 | 설명 |
 | :--- | :--- | :--- | :--- |
@@ -150,7 +185,7 @@ Pacer의 Anki 카드 생성 판단 등, AI의 세부 결정을 기록하고 코�
 | next_review_date | DATE | NOT NULL | 다음 복습 예정일 (SM2 알고리즘) [cite: sigongjoa/pacer/pacer-a60f66786b01de22ec2291ec871c4f9328d9cf73/backend/anki_engine.py] |
 | ... (SM2 관련 필드: interval_days, ease_factor, repetitions) | | | |
 
-4.3. Weekly_Reports (주간 리포트)
+5.3. Weekly_Reports (주간 리포트)
 
 학부모에게 발송될 리포트의 최종본을 관리합니다.
 | 필드명 | 데이터 타입 | 제약 | 설명 |

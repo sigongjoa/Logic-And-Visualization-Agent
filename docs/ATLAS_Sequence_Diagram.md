@@ -42,9 +42,15 @@ sequenceDiagram
         API-->>ST: 22. 인터랙티브 풀이(애니메이션) 제공
         
         ST->>API: 23. (풀이 확인 및 상호작용 로그 전송)
-        API->>API: 24. (내부) **[4축 모델 미세 조정]** (로그 분석 기반)
-        API->>DB: 25. `INSERT Assessment` (type: 'AI_ANALYSIS')
-        API->>DB: 26. **`INSERT Student_Vector_History` (4축 점수 미세 갱신)**
+        
+        par (내부) 4+1축 모델 동시 갱신
+            API->>API: 24a. (역량 분석) **[4축 모델 미세 조정]**
+            API->>DB: 25a. `INSERT Assessment` (type: 'AI_ANALYSIS')
+            API->>DB: 26a. **`INSERT Student_Vector_History` (4축 점수 미세 갱신)**
+        and
+            API->>API: 24b. (진도 분석) **[커리큘럼 축 갱신]**
+            API->>DB: 25b. `UPDATE Student_Mastery` (concept_id='C-001', score=70)
+        end
     end
 
     Note over ST, KAKAO: (C) 리포팅 사이클 (코치 -> 학부모)
