@@ -163,3 +163,37 @@ def test_get_student_submissions(db_session: Session):
     # Fetch the concept to get the manim_data_path
     concept1 = db_session.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_id == data_ids["concept1_id"]).first()
     assert submissions_data[0]["manim_content_url"] == concept1.manim_data_path
+
+def test_get_student_anki_cards(db_session: Session):
+    data_ids = setup_test_data(db_session)
+
+    # Create Anki cards for student1
+    anki_card1 = models.AnkiCard(
+        student_id=data_ids["student1_id"],
+        llm_log_id=1, # Placeholder
+        question="Anki Question 1",
+        answer="Anki Answer 1",
+        next_review_date=datetime.now(timezone.utc) + timedelta(days=1),
+        interval_days=1, ease_factor=2.5, repetitions=1
+    )
+    anki_card2 = models.AnkiCard(
+        student_id=data_ids["student1_id"],
+        llm_log_id=2, # Placeholder
+        question="Anki Question 2",
+        answer="Anki Answer 2",
+        next_review_date=datetime.now(timezone.utc) + timedelta(days=2),
+        interval_days=2, ease_factor=2.6, repetitions=2
+    )
+    db_session.add_all([anki_card1, anki_card2])
+    db_session.commit()
+    db_session.refresh(anki_card1)
+    db_session.refresh(anki_card2)
+
+    response = client.get(f"/coaches/students/{data_ids['student1_id']}/anki-cards")
+    assert response.status_code == 200
+    anki_cards_data = response.json()
+    assert len(anki_cards_data) == 2
+    assert any(card["question"] == "Anki Question 1" for card in anki_cards_data)
+    assert any(card["question"] == "Anki Question 2" for card in anki_cards_data)
+    assert anki_cards_data[0]["student_id"] == data_ids["student1_id"]
+    assert anki_cards_data[1]["student_id"] == data_ids["student1_id"]

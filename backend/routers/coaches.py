@@ -42,3 +42,8 @@ def get_student_submissions(student_id: str, db: Session = Depends(get_db)):
             manim_content_url=manim_content_url
         ))
     return results
+
+@router.get("/students/{student_id}/anki-cards", response_model=List[schemas.AnkiCard])
+def get_student_anki_cards(student_id: str, db: Session = Depends(get_db)):
+    anki_cards = crud.get_anki_cards_by_student(db, student_id)
+    return anki_cards

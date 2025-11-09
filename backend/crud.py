@@ -288,6 +288,9 @@ def create_anki_card(
     db.refresh(db_anki_card)
     return db_anki_card
 
+def get_anki_cards_by_student(db: Session, student_id: str) -> List[models.AnkiCard]:
+    return db.query(models.AnkiCard).filter(models.AnkiCard.student_id == student_id).all()
+
 # Submissions
 def create_submission(db: Session, submission: schemas.SubmissionCreate):
     submission_id = f"sub_{uuid.uuid4().hex[:8]}"

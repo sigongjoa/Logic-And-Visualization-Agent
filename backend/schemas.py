@@ -131,3 +131,15 @@ class StudentMastery(BaseModel):
     status: Optional[str] = None
     last_updated: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+class AnkiCard(BaseModel):
+    card_id: int
+    student_id: str
+    llm_log_id: int
+    question: str
+    answer: str
+    next_review_date: datetime
+    interval_days: int
+    ease_factor: float
+    repetitions: int
+    model_config = ConfigDict(from_attributes=True)

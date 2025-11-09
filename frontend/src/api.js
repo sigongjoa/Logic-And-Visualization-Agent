@@ -52,3 +52,12 @@ export const getStudentSubmissions = async (studentId) => {
   }
   return response.json();
 };
+
+export const getStudentAnkiCards = async (studentId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/anki-cards`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch Anki cards for student ${studentId}`);
+  }
+  return response.json();
+};

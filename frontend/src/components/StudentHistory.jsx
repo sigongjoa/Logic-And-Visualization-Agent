@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getStudentSubmissions, getStudentAnkiCards } from '../api';
 
-const API_BASE_URL = 'http://localhost:8000'; // FastAPI backend URL
-
-function StudentHistory() {
   const [studentId, setStudentId] = useState('std_kimminjun'); // Default student ID
   const [history, setHistory] = useState([]);
   const [submissions, setSubmissions] = useState([]); // New state for submissions
@@ -16,50 +13,20 @@ function StudentHistory() {
     setError(null);
     try {
       // Fetch vector history
-      const historyResponse = await axios.get(`${API_BASE_URL}/students/${studentId}/vector-history`);
-      setHistory(historyResponse.data);
+      const historyResponse = await fetch(`http://localhost:8000/students/${studentId}/vector-history`);
+      if (!historyResponse.ok) {
+        throw new Error(`Failed to fetch vector history: ${historyResponse.statusText}`);
+      }
+      const historyData = await historyResponse.json();
+      setHistory(historyData);
 
-      // Simulate fetching submissions (will need a real API endpoint)
-      const submissionsResponse = {
-        data: [
-          {
-            submission_id: 'sub_123',
-            problem_text: '이차함수와 그래프 문제',
-            concept_id: 'C_이차함수',
-            logical_path_text: 'LLM analysis: The problem is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties.',
-            manim_data_path: 'https://youtube.com/watch?v=quadratic_function_manim',
-            created_at: new Date().toISOString(),
-          },
-          {
-            submission_id: 'sub_456',
-            problem_text: '피타고라스의 정리 활용',
-            concept_id: 'C_피타고라스',
-            logical_path_text: 'LLM analysis: The problem applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.',
-            manim_data_path: 'https://youtube.com/watch?v=pythagorean_theorem_manim',
-            created_at: new Date().toISOString(),
-          },
-        ],
-      };
-      setSubmissions(submissionsResponse.data);
+      // Fetch submissions
+      const submissionsData = await getStudentSubmissions(studentId);
+      setSubmissions(submissionsData);
 
-      // Simulate fetching Anki cards (will need a real API endpoint)
-      const ankiCardsResponse = {
-        data: [
-          {
-            card_id: 1,
-            question: 'What is the key concept related to "이차함수와 그래프 문제"?',
-            answer: 'The problem is primarily about "C_이차함수" and its logical path is: LLM analysis: The problem is about quadratic functions. Key steps involve identifying the vertex, roots, and graph properties.',
-            next_review_date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
-          },
-          {
-            card_id: 2,
-            question: 'What is the key concept related to "피타고라스의 정리 활용"?',
-            answer: 'The problem is primarily about "C_피타고라스" and its logical path is: LLM analysis: The problem applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.',
-            next_review_date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(),
-          },
-        ],
-      };
-      setAnkiCards(ankiCardsResponse.data);
+      // Fetch Anki cards
+      const ankiCardsData = await getStudentAnkiCards(studentId);
+      setAnkiCards(ankiCardsData);
 
     } catch (err) {
       setError('Failed to fetch student history. Please ensure the backend is running and the student ID is valid.');
