@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pacer.backend import schemas, crud
 from pacer.backend.main import get_db
@@ -15,11 +15,20 @@ def create_submission(
 ):
     submission_id = f"sub_{uuid.uuid4()}"
 
-    # In a real V1 scenario, this would call the Meta-RAG engine.
-    # For now, we'll mock the response as per the V1 "뼈대(skeleton)" strategy.
-    logical_path_text = "This is a mock logical path from Meta-RAG."
-    concept_id = "C-001" # Mock concept ID
-    manim_content_url = "https://youtube.com/watch?v=mock_video"
+    # V1 Meta-RAG simulation: Search for a concept keyword in the problem text.
+    # This is a very basic implementation.
+    # A more advanced version would parse the text more intelligently.
+    found_concept = crud.search_concept_by_keyword(db, submission.problem_text)
+
+    if not found_concept:
+        # If no concept is found, we can't proceed with the V1 logic.
+        # In a real scenario, we might have a fallback or error state.
+        # For now, we'll raise an error.
+        raise HTTPException(status_code=404, detail="No relevant concept found for the submission.")
+
+    concept_id = found_concept.concept_id
+    logical_path_text = f"This problem appears to be related to the concept: '{found_concept.concept_name}'."
+    manim_content_url = found_concept.manim_data_path or "https://youtube.com/watch?v=default_video"
 
     db_submission = crud.create_submission(
         db=db,
@@ -46,5 +55,5 @@ def create_submission(
         status=db_submission.status,
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
-        manim_content_url=manim_content_url, # This comes from a lookup, mocked here
+        manim_content_url=manim_content_url,
     )

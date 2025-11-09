@@ -115,3 +115,15 @@ def create_llm_log_feedback(db: Session, feedback: schemas.LLMFeedback, source_s
     db.commit()
     db.refresh(db_llm_log)
     return db_llm_log
+
+def search_concept_by_keyword(db: Session, problem_text: str):
+    """
+    A simple keyword search for a concept in the concepts library.
+    Iterates through all concepts and checks if their name is in the problem_text.
+    Returns the first matching concept.
+    """
+    all_concepts = db.query(models.ConceptsLibrary).all()
+    for concept in all_concepts:
+        if concept.concept_name in problem_text:
+            return concept
+    return None

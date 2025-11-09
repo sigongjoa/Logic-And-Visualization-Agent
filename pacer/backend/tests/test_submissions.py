@@ -29,7 +29,7 @@ def test_create_submission():
     db = TestingSessionLocal()
     student_id = "std_testuser_submission"
     curriculum_id = "MATH-01"
-    concept_id = "C-001"
+    concept_id = "C-M-007" # Use the correct concept_id
 
     # Ensure student exists (or create if not)
     if not db.query(models.Student).filter_by(student_id=student_id).first():
@@ -49,9 +49,9 @@ def test_create_submission():
     if not db.query(models.ConceptsLibrary).filter_by(concept_id=concept_id).first():
         db.add(models.ConceptsLibrary(
             concept_id=concept_id,
-            curriculum_id=curriculum_id,
-            concept_name="Quadratic Formula",
-            manim_data_path="http://example.com/manim/C-001"
+            curriculum_id="M-ALL", # Match the curriculum_id from populate_db.py
+            concept_name="이차함수와 그래프",
+            manim_data_path="http://example.com/manim/C-M-007"
         ))
         db.commit()
     db.close()
@@ -59,7 +59,7 @@ def test_create_submission():
     # 2. Define the test data
     submission_data = {
         "student_id": student_id,
-        "problem_text": "What is the derivative of x^2?",
+        "problem_text": "이차함수와 그래프에 대해 설명하시오.", # Use a keyword from the populated concepts
     }
 
     # 3. Call the API endpoint
@@ -71,7 +71,7 @@ def test_create_submission():
     assert data["status"] == "COMPLETE"
     assert "submission_id" in data
     assert data["logical_path_text"] is not None
-    assert data["concept_id"] == concept_id # Ensure the mocked concept_id is returned
+    assert data["concept_id"] == "C-M-007" # Assert the correct concept_id
     assert data["manim_content_url"] is not None
 
     # 5. Verify the data in the database (Submission and StudentMastery)
@@ -81,7 +81,7 @@ def test_create_submission():
     assert submission_entry.student_id == student_id
     assert submission_entry.status == "COMPLETE"
 
-    mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id=concept_id).first()
+    mastery_entry = db.query(models.StudentMastery).filter_by(student_id=student_id, concept_id="C-M-007").first()
     assert mastery_entry is not None
     assert mastery_entry.mastery_score == 70 # Assuming a mock mastery score update
     assert mastery_entry.status == "MASTERED" # Assuming a mock status
