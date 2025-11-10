@@ -24,3 +24,15 @@ def create_llm_feedback(
         model_version=mock_model_version,
     )
     return db_llm_log
+
+@router.patch("/feedback/{log_id}", response_model=schemas.LLMLogResponse)
+def update_llm_feedback(
+    log_id: int, feedback: schemas.LLMFeedback, db: Session = Depends(get_db)
+):
+    db_llm_log = crud.update_llm_log_feedback(
+        db=db,
+        log_id=log_id,
+        coach_feedback=feedback.coach_feedback,
+        reason_code=feedback.reason_code,
+    )
+    return db_llm_log

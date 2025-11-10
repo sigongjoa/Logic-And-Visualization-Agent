@@ -8,7 +8,5 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './setupTests.js',
-    threads: false, // Disable parallelization
-    include: ['**/*.test.jsx'], // Explicitly include test files
   },
 })

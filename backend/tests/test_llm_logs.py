@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker, Session
 from backend.main import app, get_db
 from backend import models, crud
+from backend import schemas as backend_schemas, crud # Modified line
 from backend.models import Base
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -24,44 +25,43 @@ app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
-def test_create_llm_feedback():
-    # 1. Setup: Create a dummy submission (if needed, as source_submission_id is nullable)
+def test_update_llm_feedback():
     db = TestingSessionLocal()
-    submission_id = "sub_llm_test"
-    if not db.query(models.Submission).filter_by(submission_id=submission_id).first():
-        db.add(models.Submission(
-            submission_id=submission_id,
-            student_id="std_llm_test",
-            problem_text="Test problem",
-            status="COMPLETE"
-        ))
-        db.commit()
+    # 1. Setup: Create an initial LLMLog entry
+    initial_feedback_data = backend_schemas.LLMFeedback( # Modified line
+        coach_feedback="NEUTRAL",
+        reason_code="INITIAL_REVIEW",
+        source_submission_id="sub_initial_llm_log"
+    )
+    initial_llm_log = crud.create_llm_log_feedback(
+        db=db,
+        feedback=initial_feedback_data,
+        source_submission_id="sub_initial_llm_log",
+        decision="INITIAL_ANALYSIS",
+        model_version="v0.9"
+    )
     db.close()
 
-    # 2. Define the test data
-    feedback_data = {
-        "log_id": 1, # This will be auto-incremented in DB, but schema expects it
+    # 2. Define the update data
+    updated_feedback_data = {
         "coach_feedback": "GOOD",
         "reason_code": "SIMPLE_MISTAKE",
-        "source_submission_id": submission_id, # Optional, but good to test
     }
 
-    # 3. Call the API endpoint
-    response = client.post("/llm-logs/feedback", json=feedback_data)
+    # 3. Call the API endpoint to update
+    response = client.patch(f"/llm-logs/feedback/{initial_llm_log.log_id}", json=updated_feedback_data)
 
     # 4. Assert the response
-    assert response.status_code == 201
+    assert response.status_code == 200
     data = response.json()
-    assert data["coach_feedback"] == feedback_data["coach_feedback"]
-    assert data["reason_code"] == feedback_data["reason_code"]
-    assert data["source_submission_id"] == feedback_data["source_submission_id"]
-    assert "log_id" in data
-    assert "created_at" in data
+    assert data["log_id"] == initial_llm_log.log_id
+    assert data["coach_feedback"] == updated_feedback_data["coach_feedback"]
+    assert data["reason_code"] == updated_feedback_data["reason_code"]
 
     # 5. Verify the data in the database
     db = TestingSessionLocal()
-    llm_log_entry = db.query(models.LLMLog).filter_by(log_id=data["log_id"]).first()
-    assert llm_log_entry is not None
-    assert llm_log_entry.coach_feedback == feedback_data["coach_feedback"]
-    assert llm_log_entry.reason_code == feedback_data["reason_code"]
+    updated_llm_log_entry = db.query(models.LLMLog).filter_by(log_id=initial_llm_log.log_id).first()
+    assert updated_llm_log_entry is not None
+    assert updated_llm_log_entry.coach_feedback == updated_feedback_data["coach_feedback"]
+    assert updated_llm_log_entry.reason_code == updated_feedback_data["reason_code"]
     db.close()

@@ -11,9 +11,11 @@ vi.mock('../api', () => ({
 }));
 
 describe('CoachReportReview', () => {
-  it('renders the Coach Report Review heading', () => {
+  it('renders the Coach Report Review heading', async () => { // 1. async 추가
     render(<CoachReportReview />);
-    expect(screen.getByText(/Coach Report Review/i)).toBeInTheDocument();
+    // 2. getByText를 findByText로 변경하고 await 추가
+    const headingElement = await screen.findByText(/Coach Report Review/i);
+    expect(headingElement).toBeInTheDocument();
   });
 
   it('displays "No draft reports available." when no reports are fetched', async () => {

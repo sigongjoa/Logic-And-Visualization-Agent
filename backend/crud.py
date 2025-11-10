@@ -237,6 +237,20 @@ def create_llm_log_feedback(
     db.refresh(db_llm_log)
     return db_llm_log
 
+def update_llm_log_feedback(
+    db: Session,
+    log_id: int,
+    coach_feedback: str,
+    reason_code: Optional[str] = None,
+):
+    db_llm_log = db.query(models.LLMLog).filter(models.LLMLog.log_id == log_id).first()
+    if db_llm_log:
+        db_llm_log.coach_feedback = coach_feedback
+        db_llm_log.reason_code = reason_code
+        db.commit()
+        db.refresh(db_llm_log)
+    return db_llm_log
+
 # Reports
 def get_report_drafts(db: Session) -> List[models.WeeklyReport]:
     return db.query(models.WeeklyReport).filter(models.WeeklyReport.status == "DRAFT").all()
@@ -292,11 +306,11 @@ def create_anki_card(
     llm_log_id: int,
     question: str,
     answer: str,
-    next_review_date: datetime,
     interval_days: int = 0,
     ease_factor: float = 2.5,
     repetitions: int = 0,
 ):
+    next_review_date = datetime.now(UTC).date() + timedelta(days=1) # Initial next review date
     db_anki_card = models.AnkiCard(
         student_id=student_id,
         llm_log_id=llm_log_id,
@@ -312,11 +326,71 @@ def create_anki_card(
     db.refresh(db_anki_card)
     return db_anki_card
 
+def update_anki_card_sm2(db: Session, card_id: int, grade: int):
+    logger.debug(f"SM2 Update: card_id={card_id}, grade={grade}")
+    db_anki_card = db.query(models.AnkiCard).filter(models.AnkiCard.card_id == card_id).first()
+    if db_anki_card:
+        logger.debug(f"SM2 Update: Before - repetitions={db_anki_card.repetitions}, ease_factor={db_anki_card.ease_factor}, interval_days={db_anki_card.interval_days}, next_review_date={db_anki_card.next_review_date}")
+        repetitions, ease_factor, interval_days, next_review_date = calculate_sm2_params(
+            db_anki_card.repetitions,
+            db_anki_card.ease_factor,
+            db_anki_card.interval_days,
+            grade,
+        )
+        db_anki_card.repetitions = repetitions
+        db_anki_card.ease_factor = ease_factor
+        db_anki_card.interval_days = interval_days
+        db_anki_card.next_review_date = next_review_date
+        db.commit()
+        db.refresh(db_anki_card)
+        logger.debug(f"SM2 Update: After - repetitions={db_anki_card.repetitions}, ease_factor={db_anki_card.ease_factor}, interval_days={db_anki_card.interval_days}, next_review_date={db_anki_card.next_review_date}")
+    return db_anki_card
+
 def get_anki_cards_by_student(db: Session, student_id: str) -> List[models.AnkiCard]:
     return db.query(models.AnkiCard).filter(models.AnkiCard.student_id == student_id).all()
 
 def get_student_mastery_by_student(db: Session, student_id: str) -> List[models.StudentMastery]:
     return db.query(models.StudentMastery).filter(models.StudentMastery.student_id == student_id).all()
+
+def calculate_sm2_params(
+    repetitions: int, ease_factor: float, interval_days: int, grade: int
+) -> tuple[int, float, int, datetime.date]: # Changed return type to datetime.date
+    """
+    Calculates the new SM2 parameters based on the feedback grade.
+    Grade should be an integer from 0 to 5.
+    0-2: Incorrect response
+    3: Correct response, but with difficulty
+    4: Correct response, with hesitation
+    5: Perfect recall
+    """
+    logger.debug(f"SM2: Input - repetitions={repetitions}, ease_factor={ease_factor}, interval_days={interval_days}, grade={grade}")
+
+    if grade >= 3:
+        # Successful recall
+        repetitions += 1
+        ease_factor = ease_factor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02))
+        if ease_factor < 1.3:
+            ease_factor = 1.3
+
+        if repetitions == 1:
+            interval_days = 1
+        elif repetitions == 2:
+            interval_days = 6
+        else:
+            interval_days = round(interval_days * ease_factor)
+        
+        if interval_days < 1: # Ensure interval is at least 1 day
+            interval_days = 1
+
+    else:
+        # Failed recall
+        repetitions = 0
+        interval_days = 1
+    
+    next_review_date = datetime.now(UTC).date() + timedelta(days=interval_days)
+    logger.debug(f"SM2: Output - repetitions={repetitions}, ease_factor={ease_factor}, interval_days={interval_days}, next_review_date={next_review_date}")
+
+    return repetitions, ease_factor, interval_days, next_review_date
 
 # Submissions
 def create_submission(db: Session, submission: schemas.SubmissionCreate):
@@ -420,7 +494,6 @@ def create_submission(db: Session, submission: schemas.SubmissionCreate):
         llm_log_id=db_llm_log.log_id,
         question=anki_question,
         answer=anki_answer,
-        next_review_date=next_review_date,
     )
 
     return db_submission

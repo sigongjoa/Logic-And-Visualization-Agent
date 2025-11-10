@@ -33,7 +33,7 @@ def get_db():
 def read_root():
     return {"message": "Welcome to Project: ATLAS API"}
 
-from backend.routers import assessments, submissions, reports, students, coach_memos, llm_logs, coaches # Added coaches
+from backend.routers import assessments, submissions, reports, students, coach_memos, llm_logs, coaches, anki_cards # Added coaches, anki_cards
 app.include_router(assessments.router)
 app.include_router(submissions.router)
 app.include_router(reports.router)
@@ -41,3 +41,4 @@ app.include_router(students.router)
 app.include_router(coach_memos.router)
 app.include_router(llm_logs.router)
 app.include_router(coaches.router) # Added coaches router
+app.include_router(anki_cards.router) # Added anki_cards router

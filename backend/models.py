@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Table,
     CheckConstraint,
+    Float, # Added Float
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -164,7 +165,7 @@ class AnkiCard(Base):
     next_review_date = Column(DateTime, nullable=False)
     # SM2 algorithm fields
     interval_days = Column(Integer, default=0)
-    ease_factor = Column(Integer, default=2.5)
+    ease_factor = Column(Float, default=2.5)
     repetitions = Column(Integer, default=0)
 
 

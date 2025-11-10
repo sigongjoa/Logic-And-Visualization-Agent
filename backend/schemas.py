@@ -143,3 +143,6 @@ class AnkiCard(BaseModel):
     ease_factor: float
     repetitions: int
     model_config = ConfigDict(from_attributes=True)
+
+class AnkiCardReview(BaseModel):
+    grade: int = Field(..., ge=0, le=5)
