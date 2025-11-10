@@ -56,6 +56,7 @@ class SubmissionResult(BaseModel):
     logical_path_text: str
     concept_id: Optional[str] = None
     manim_content_url: Optional[str] = None
+    submitted_at: Optional[datetime] = None
 
 class CoachMemoCreate(BaseModel):
     coach_id: str

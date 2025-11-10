@@ -28,6 +28,7 @@ def create_submission(
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
         manim_content_url=manim_content_url,
+        submitted_at=db_submission.submitted_at,
     )
 
 @router.get("/{submission_id}", response_model=schemas.SubmissionResult)
@@ -42,4 +43,5 @@ def get_submission_by_id(submission_id: str, db: Session = Depends(get_db)):
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
         manim_content_url=db_submission.manim_data_path,
+        submitted_at=db_submission.submitted_at,
     )

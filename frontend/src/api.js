@@ -89,8 +89,35 @@ export const getSubmission = async (submissionId) => {
     return response.json();
 };
 
+export const getCurriculums = async () => {
+    const response = await fetch(`${API_BASE_URL}/curriculums`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch curriculums');
+    }
+    return response.json();
+};
+
+export const getConcepts = async () => {
+    const response = await fetch(`${API_BASE_URL}/concepts`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch concepts');
+    }
+    return response.json();
+};
+
+export const getConceptRelations = async () => {
+    const response = await fetch(`${API_BASE_URL}/concept-relations`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch concept relations');
+    }
+    return response.json();
+};
+
 export const getStudentReports = async (studentId) => {
-  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/reports`);
+  const response = await fetch(`${API_BASE_URL}/students/${studentId}/reports`);
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.detail || `Failed to fetch reports for student ${studentId}`);
