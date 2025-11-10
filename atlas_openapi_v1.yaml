@@ -10,6 +10,31 @@ servers:
     description: "Local Development Server"
 
 paths:
+  /login:
+    post:
+      summary: Authenticate user and get a token
+      operationId: login_for_access_token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        "400":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+        - Auth
   /students/{student_id}/vector-history:
     get:
       summary: "학생의 4축 모델 성장 이력 조회 (코치용)"
@@ -800,3 +825,36 @@ components:
           format: float
         repetitions:
           type: integer
+    UserLogin:
+      title: UserLogin
+      required:
+        - email_or_username
+        - password
+        - user_type
+      type: object
+      properties:
+        email_or_username:
+          title: Email Or Username
+          type: string
+        password:
+          title: Password
+          type: string
+        user_type:
+          title: User Type
+          type: string
+          enum:
+            - student
+            - coach
+    Token:
+      title: Token
+      required:
+        - access_token
+        - token_type
+      type: object
+      properties:
+        access_token:
+          title: Access Token
+          type: string
+        token_type:
+          title: Token Type
+          type: string

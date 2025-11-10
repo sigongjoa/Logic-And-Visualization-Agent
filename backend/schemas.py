@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Literal
 from datetime import datetime
 
 class StudentCreate(BaseModel):
@@ -64,9 +64,20 @@ class CoachMemoCreate(BaseModel):
     memo_text: str
 
 class CoachMemoResponse(CoachMemoCreate):
-    memo_id: int
+    memo_id: str
     created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
+
+    class Config:
+        from_attributes = True
+
+class UserLogin(BaseModel):
+    email_or_username: str
+    password: str
+    user_type: Literal["student", "coach"]
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 class WeeklyReport(BaseModel):
     report_id: int

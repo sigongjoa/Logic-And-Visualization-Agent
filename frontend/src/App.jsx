@@ -8,41 +8,13 @@ import StudentDetail from './components/StudentDetail';
 import CoachReportReview from './components/CoachReportReview';
 import AssignmentReview from './components/AssignmentReview';
 import StudentDashboard from './components/StudentDashboard';
-import CurriculumPage from './components/CurriculumPage'; // New import
+import CurriculumPage from './components/CurriculumPage';
+import LoginPage from './components/LoginPage'; // New import
 import './App.css';
 
-function App() {
-  return (
-    <Router>
-      <div className="App">
-        <nav>
-          <ul>
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/history">Student History</Link>
-            </li>
-            <li>
-              <Link to="/submit">Submit Problem</Link>
-            </li>
-            <li>
-              <Link to="/coach">Coach Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/coach/reports">Coach Report Review</Link>
-            </li>
-            <li>
-              <Link to="/student/dashboard">Student Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/curriculum">Curriculum</Link> {/* New navigation link */}
-            </li>
-          </ul>
-        </nav>
-
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<LoginPage />} /> {/* Set LoginPage as default route */}
+          <Route path="/home" element={<Home />} />
           <Route path="/history" element={<StudentHistory />} />
           <Route path="/submit" element={<SubmissionForm />} />
           <Route path="/submission-result" element={<SubmissionResult />} />
@@ -50,7 +22,7 @@ function App() {
           <Route path="/coach/students/:studentId" element={<StudentDetail />} />
           <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/curriculum" element={<CurriculumPage />} /> {/* New route */}
+          <Route path="/curriculum" element={<CurriculumPage />} />
           <Route path="/coach/reports" element={<CoachReportReview />} />
         </Routes>
       </div>

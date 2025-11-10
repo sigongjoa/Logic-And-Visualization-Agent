@@ -116,6 +116,22 @@ export const getConceptRelations = async () => {
     return response.json();
 };
 
+export const login = async (email_or_username, password, user_type) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email_or_username, password, user_type }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Login failed');
+    }
+    return response.json();
+};
+
 export const getStudentReports = async (studentId) => {
   const response = await fetch(`${API_BASE_URL}/students/${studentId}/reports`);
   if (!response.ok) {
