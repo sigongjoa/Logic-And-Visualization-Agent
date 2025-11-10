@@ -9,19 +9,40 @@ import CoachReportReview from './components/CoachReportReview';
 import AssignmentReview from './components/AssignmentReview';
 import StudentDashboard from './components/StudentDashboard';
 import CurriculumPage from './components/CurriculumPage';
-import LoginPage from './components/LoginPage';
-import NotificationCenter from './components/NotificationCenter';
-import UserSettingsPage from './components/UserSettingsPage'; // New import
 import './App.css';
 
 function App() {
   return (
     <Router>
       <div className="App">
-        {/* Navigation links removed as login page is the entry point */}
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/history">Student History</Link>
+            </li>
+            <li>
+              <Link to="/submit">Submit Problem</Link>
+            </li>
+            <li>
+              <Link to="/coach">Coach Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/coach/reports">Coach Report Review</Link>
+            </li>
+            <li>
+              <Link to="/student/dashboard">Student Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/curriculum">Curriculum</Link>
+            </li>
+          </ul>
+        </nav>
+
         <Routes>
-          <Route path="/" element={<LoginPage />} /> {/* Set LoginPage as default route */}
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/history" element={<StudentHistory />} />
           <Route path="/submit" element={<SubmissionForm />} />
           <Route path="/submission-result" element={<SubmissionResult />} />
@@ -30,8 +51,6 @@ function App() {
           <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/curriculum" element={<CurriculumPage />} />
-          <Route path="/notifications" element={<NotificationCenter />} />
-          <Route path="/settings" element={<UserSettingsPage />} /> {/* New route */}
           <Route path="/coach/reports" element={<CoachReportReview />} />
         </Routes>
       </div>

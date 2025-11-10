@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # New import
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from backend import models
@@ -19,6 +20,20 @@ app = FastAPI(
     title="Project: ATLAS - AI Coaching Platform API (V1)",
     description="학생의 4축 잠재 공간 모델을 기반으로 코칭 활동을 지원하는 통합 API",
     version="1.0.0"
+)
+
+# CORS Middleware
+origins = [
+    "http://localhost",
+    "http://localhost:5173", # Frontend development server
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Dependency to get DB session

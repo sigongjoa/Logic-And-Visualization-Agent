@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000'; // Assuming your FastAPI backend runs on this port
+const API_BASE_URL = 'http://localhost:8001'; // Assuming your FastAPI backend runs on this port
 
 export const createSubmission = async (submissionData) => {
   const response = await fetch(`${API_BASE_URL}/submissions`, {
@@ -247,7 +247,7 @@ export const getStudentLatestVector = async (studentId) => {
 };
 
 export const getStudentSubmissions = async (studentId) => {
-  const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/submissions`);
+  const response = await fetch(`${API_BASE_URL}/students/${studentId}/submissions`);
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.detail || `Failed to fetch submissions for student ${studentId}`);
