@@ -79,6 +79,16 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class Notification(BaseModel):
+    notification_id: str
+    user_id: str
+    type: Literal["assignment_graded", "new_feedback", "new_student", "new_submission", "system_alert"]
+    title: str
+    message: str
+    created_at: datetime
+    is_read: bool
+    related_id: Optional[str] = None
+
 class WeeklyReport(BaseModel):
     report_id: int
     student_id: str

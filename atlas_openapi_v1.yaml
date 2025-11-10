@@ -35,6 +35,45 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       tags:
         - Auth
+  /notifications:
+    get:
+      summary: Get all notifications for the current user
+      operationId: get_notifications
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+      tags:
+        - Notifications
+  /notifications/{notification_id}/read:
+    put:
+      summary: Mark a specific notification as read
+      operationId: mark_notification_as_read
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification marked as read
+      tags:
+        - Notifications
+  /notifications/mark-all-read:
+    put:
+      summary: Mark all notifications as read for the current user
+      operationId: mark_all_notifications_as_read
+      responses:
+        "200":
+          description: All notifications marked as read
+      tags:
+        - Notifications
   /students/{student_id}/vector-history:
     get:
       summary: "학생의 4축 모델 성장 이력 조회 (코치용)"
@@ -858,3 +897,47 @@ components:
         token_type:
           title: Token Type
           type: string
+    Notification:
+      title: Notification
+      required:
+        - notification_id
+        - user_id
+        - type
+        - title
+        - message
+        - created_at
+        - is_read
+      type: object
+      properties:
+        notification_id:
+          title: Notification Id
+          type: string
+        user_id:
+          title: User Id
+          type: string
+        type:
+          title: Type
+          type: string
+          enum:
+            - assignment_graded
+            - new_feedback
+            - new_student
+            - new_submission
+            - system_alert
+        title:
+          title: Title
+          type: string
+        message:
+          title: Message
+          type: string
+        created_at:
+          title: Created At
+          type: string
+          format: date-time
+        is_read:
+          title: Is Read
+          type: boolean
+        related_id:
+          title: Related Id
+          type: string
+          nullable: true

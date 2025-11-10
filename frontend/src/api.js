@@ -132,6 +132,37 @@ export const login = async (email_or_username, password, user_type) => {
     return response.json();
 };
 
+export const getNotifications = async () => {
+    const response = await fetch(`${API_BASE_URL}/notifications/`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch notifications');
+    }
+    return response.json();
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+    const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+        method: 'PUT',
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Failed to mark notification ${notificationId} as read`);
+    }
+    return response.json();
+};
+
+export const markAllNotificationsAsRead = async () => {
+    const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+        method: 'PUT',
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to mark all notifications as read');
+    }
+    return response.json();
+};
+
 export const getStudentReports = async (studentId) => {
   const response = await fetch(`${API_BASE_URL}/students/${studentId}/reports`);
   if (!response.ok) {

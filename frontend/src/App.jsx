@@ -9,7 +9,8 @@ import CoachReportReview from './components/CoachReportReview';
 import AssignmentReview from './components/AssignmentReview';
 import StudentDashboard from './components/StudentDashboard';
 import CurriculumPage from './components/CurriculumPage';
-import LoginPage from './components/LoginPage'; // New import
+import LoginPage from './components/LoginPage';
+import NotificationCenter from './components/NotificationCenter'; // New import
 import './App.css';
 
         <Routes>
@@ -23,6 +24,7 @@ import './App.css';
           <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/curriculum" element={<CurriculumPage />} />
+          <Route path="/notifications" element={<NotificationCenter />} /> {/* New route */}
           <Route path="/coach/reports" element={<CoachReportReview />} />
         </Routes>
       </div>
