@@ -53,49 +53,85 @@ def db_session_fixture():
         db.close()
         Base.metadata.drop_all(bind=engine)
 
+import unittest.mock
+
 def test_create_submission(db_session: Session):
-    # 1. Create a dummy student
-    student_id = "std_test_submission"
-    student_name = "Test Student"
-    crud.create_student(db_session, schemas.StudentCreate(student_id=student_id, student_name=student_name))
+    # Mock the external API calls
+    with unittest.mock.patch("backend.crud.requests.post") as mock_post:
+        # Configure mock for LLM API call
+        mock_llm_response = unittest.mock.Mock()
+        mock_llm_response.status_code = 200
+        mock_llm_response.json.return_value = {
+            "concept_id": "C-HCOM-004",
+            "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
+            "manim_data_path": "https://youtube.com/watch?v=manim_video_for_quadratic_equation",
+            "vector_data": {
+                "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+                "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
+                "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
+                "axis4_acc": 50, "axis4_gri": 50,
+            }
+        }
 
-    # 2. Define the test submission data
-    submission_data = {
-        "student_id": student_id,
-        "problem_text": "x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)",
-    }
+        # Configure mock for Manim Agent API call (this will be called by crud.call_external_llm_for_analysis)
+        mock_manim_response = unittest.mock.Mock()
+        mock_manim_response.status_code = 200
+        mock_manim_response.json.return_value = {
+            "video_url": "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
+        }
+        
+        # Set up the side_effect to return different mocks based on the URL
+        def side_effect(url, *args, **kwargs):
+            if "llm-analysis" in url:
+                return mock_llm_response
+            elif "manim-generate" in url:
+                return mock_manim_response
+            return unittest.mock.DEFAULT
 
-    # 3. Call the API endpoint
-    response = client.post("/submissions", json=submission_data)
+        mock_post.side_effect = side_effect
 
-    # 4. Assert the response
-    assert response.status_code == 201
-    data = response.json()
-    assert "submission_id" in data
-    assert data["status"] == "COMPLETE"
-    assert "LLM analysis" in data["logical_path_text"]
-    assert data["concept_id"] == "C-HCOM-004" # Based on simulated LLM response for "이차방정식"
-    assert "manim_content_url" in data
+        # 1. Create a dummy student
+        student_id = "std_test_submission"
+        student_name = "Test Student"
+        crud.create_student(db_session, schemas.StudentCreate(student_id=student_id, student_name=student_name))
 
-    # 5. Verify the data in the database
-    db = db_session
-    
-    # Verify Submission
-    db_submission = db.query(Submission).filter_by(submission_id=data["submission_id"]).first()
-    assert db_submission is not None
-    assert db_submission.student_id == student_id
-    assert db_submission.problem_text == submission_data["problem_text"]
-    assert db_submission.status == "COMPLETE"
-    assert db_submission.concept_id == "C-HCOM-004"
+        # 2. Define the test submission data
+        submission_data = {
+            "student_id": student_id,
+            "problem_text": "x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)",
+        }
 
-    # Verify StudentMastery
-    db_mastery = db.query(StudentMastery).filter_by(student_id=student_id, concept_id="C-HCOM-004").first()
-    assert db_mastery is not None
-    assert db_mastery.mastery_score > 0 # Initial score should be set
-    assert db_mastery.status == "IN_PROGRESS"
+        # 3. Call the API endpoint
+        response = client.post("/submissions", json=submission_data)
 
-    # Verify StudentVectorHistory
-    db_vector_history = db.query(StudentVectorHistory).filter_by(student_id=student_id).order_by(StudentVectorHistory.created_at.desc()).first()
-    assert db_vector_history is not None
-    assert db_vector_history.assessment_id is not None
-    assert db_vector_history.axis1_alg == 65 # Based on simulated LLM response for "이차방정식"
+        # 4. Assert the response
+        assert response.status_code == 201
+        data = response.json()
+        assert "submission_id" in data
+        assert data["status"] == "COMPLETE"
+        assert "LLM generated logical path" in data["logical_path_text"]
+        assert data["concept_id"] == "C-HCOM-004" # Based on simulated LLM response for "이차방정식"
+        assert data["manim_content_url"] == "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
+
+        # 5. Verify the data in the database
+        db = db_session
+        
+        # Verify Submission
+        db_submission = db.query(Submission).filter_by(submission_id=data["submission_id"]).first()
+        assert db_submission is not None
+        assert db_submission.student_id == student_id
+        assert db_submission.problem_text == submission_data["problem_text"]
+        assert db_submission.status == "COMPLETE"
+        assert db_submission.concept_id == "C-HCOM-004"
+
+        # Verify StudentMastery
+        db_mastery = db.query(StudentMastery).filter_by(student_id=student_id, concept_id="C-HCOM-004").first()
+        assert db_mastery is not None
+        assert db_mastery.mastery_score > 0 # Initial score should be set
+        assert db_mastery.status == "IN_PROGRESS"
+
+        # Verify StudentVectorHistory
+        db_vector_history = db.query(StudentVectorHistory).filter_by(student_id=student_id).order_by(StudentVectorHistory.created_at.desc()).first()
+        assert db_vector_history is not None
+        assert db_vector_history.assessment_id is not None
+        assert db_vector_history.axis1_alg == 65 # Based on simulated LLM response for "이차방정식"

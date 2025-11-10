@@ -42,41 +42,6 @@ except FileNotFoundError:
 except json.JSONDecodeError:
     logger.error(f"Error decoding Manim simulation config file at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
 
-def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
-    """
-    Calls an external Manim Agent API to generate a video based on the concept and logical path.
-    Returns a URL to the generated Manim video.
-    """
-    headers = {"X-API-Key": MANIM_AGENT_API_KEY, "Content-Type": "application/json"}
-    payload = {
-        "concept_id": concept_id,
-        "logical_path_text": logical_path_text
-    }
-
-    try:
-        # In a real scenario, you would make an actual HTTP request here.
-        # For now, we'll simulate the Manim Agent's response.
-        # response = requests.post(MANIM_AGENT_API_URL, headers=headers, json=payload)
-        # response.raise_for_status() # Raise an exception for HTTP errors
-        # manim_response = response.json()
-        # return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
-
-        # Simulated Manim Agent response from config
-        for config_entry in manim_sim_configs:
-            if config_entry.get("concept_id") == concept_id:
-                return config_entry["manim_data_path"]
-
-        # Fallback to default if not found in config
-        return "https://youtube.com/watch?v=default_manim_video"
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error calling external Manim Agent API: {e}")
-        # Fallback to a default video or raise an exception
-        return "https://youtube.com/watch?v=error_manim_video"
-    except Exception as e:
-        logger.error(f"Error processing Manim Agent response: {e}")
-        return "https://youtube.com/watch?v=error_manim_video"
-
 def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
     """
     Calls an external LLM API to analyze the problem text and return
@@ -86,52 +51,10 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
     payload = {"problem_text": problem_text}
     
     try:
-        # In a real scenario, you would make an actual HTTP request here.
-        # For now, we'll simulate the LLM's response.
-        # response = requests.post(LLM_API_URL, headers=headers, json=payload)
-        # response.raise_for_status() # Raise an exception for HTTP errors
-        # llm_response = response.json()
+        response = requests.post(LLM_API_URL, headers=headers, json=payload)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        llm_response = response.json()
 
-        # Simulated LLM response for V1
-        llm_response = {}
-        if "이차방정식" in problem_text: # Changed from "이차함수" to "이차방정식" for better matching
-            llm_response = {
-                "concept_id": "C_이차방정식", # Use the correct concept ID from populate_knowledge_graph.py
-                "logical_path_text": f"LLM analysis: The problem '{problem_text}' is about quadratic equations. Key steps involve identifying the vertex, roots, and graph properties.",
-                "vector_data": {
-                    "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
-                    "axis2_opt": 55, "axis2_piv": 50, "axis2_dia": 50,
-                    "axis3_con": 60, "axis3_pro": 55, "axis3_ret": 50,
-                    "axis4_acc": 60, "axis4_gri": 50,
-                }
-            }
-        elif "피타고라스" in problem_text:
-            llm_response = {
-                "concept_id": "C_피타고라스의정리", # Use the correct concept ID from populate_knowledge_graph.py
-                "logical_path_text": f"LLM analysis: The problem '{problem_text}' applies the Pythagorean theorem. Focus on identifying right triangles and side lengths.",
-                "vector_data": {
-                    "axis1_geo": 65, "axis1_alg": 50, "axis1_ana": 50,
-                    "axis2_opt": 50, "axis2_piv": 55, "axis2_dia": 50,
-                    "axis3_con": 55, "axis3_pro": 60, "axis3_ret": 50,
-                    "axis4_acc": 50, "axis4_gri": 60,
-                }
-            }
-        else:
-            llm_response = {
-                "concept_id": "C_소인수분해", # Default concept: 소인수분해
-                "logical_path_text": f"LLM analysis: The problem '{problem_text}' involves basic mathematical concepts. Review fundamental principles.",
-                "vector_data": {
-                    "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
-                    "axis2_opt": 55, "axis2_piv": 55, "axis2_dia": 55,
-                    "axis3_con": 55, "axis3_pro": 55, "axis3_ret": 55,
-                    "axis4_acc": 55, "axis4_gri": 55,
-                }
-            }
-
-
-        # In a real scenario, you would parse the LLM's response
-        # to extract concept_id, logical_path_text, and vector_data.
-        
         # Placeholder for LLM-identified concept (if LLM provides it)
         llm_concept_id = llm_response.get("concept_id")
         
@@ -189,138 +112,58 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
 def process_submission(db: Session, student_id: str, problem_text: str):
     # 1. Call external LLM for analysis
     llm_analysis_result = call_external_llm_for_analysis(db, problem_text)
+
     concept_id = llm_analysis_result["concept_id"]
     logical_path_text = llm_analysis_result["logical_path_text"]
     manim_data_path = llm_analysis_result["manim_data_path"]
     vector_data = llm_analysis_result["vector_data"]
 
-    # 2. Create Submission entry
+    # 2. Create a new submission record
     submission_id = f"sub_{uuid.uuid4().hex[:8]}"
     db_submission = models.Submission(
         submission_id=submission_id,
         student_id=student_id,
         problem_text=problem_text,
-        status="COMPLETE", # Assuming immediate completion for V1 simulation
-        logical_path_text=logical_path_text,
+        submitted_at=datetime.now(UTC),
         concept_id=concept_id,
-        student_answer=None, # Not provided in this flow
+        logical_path_text=logical_path_text,
+        status="COMPLETE",
+        manim_data_path=manim_data_path, # Added this line
     )
     db.add(db_submission)
-    db.flush() # Flush to get submission_id for related objects
+    db.flush() # Use flush to get submission_id before commit
 
-    # 3. Update Student_Mastery
-    # For V1, let's assume a simple mastery update logic.
-    # If the concept is identified, increase mastery by a fixed amount, or set to a baseline.
-    # This can be refined later.
-    current_mastery = get_student_mastery(db, student_id, concept_id)
-    if current_mastery:
-        new_mastery_score = min(100, current_mastery.mastery_score + 5) # Increment by 5, max 100
-        update_student_mastery(db, student_id, concept_id, new_mastery_score, "IN_PROGRESS")
-    else:
-        # Create new mastery entry if it doesn't exist
-        create_student_mastery(db, schemas.StudentMastery(
-            student_id=student_id,
-            concept_id=concept_id,
-            mastery_score=60, # Baseline mastery
-            status="IN_PROGRESS",
-            last_updated=datetime.now(UTC)
-        ))
-
-    # 4. Create Assessment and Student_Vector_History entry
+    # 3. Create an assessment and vector history
     assessment_schema = schemas.AssessmentCreate(
         student_id=student_id,
-        assessment_type="AI_ANALYSIS",
+        assessment_type="llm_analysis",
         source_ref_id=submission_id,
-        notes=f"AI analysis for submission {submission_id}",
-        vector_data=vector_data
+        notes="Generated from LLM analysis of submission",
+        vector_data=vector_data,
     )
-    create_assessment_and_vector(db, assessment_schema)
+    db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
 
-    # 5. Create an Anki card for the identified concept (for V1 simulation)
-    # We need an LLMLog entry for the Anki card. Let's create a dummy one for now.
-    # In a real scenario, the LLM would decide if an Anki card is needed and provide details.
-    llm_log_id = f"llm_log_{uuid.uuid4().hex[:8]}"
-    db_llm_log = models.LLMLog(
-        log_id=None, # Let DB handle auto-increment
-        source_submission_id=submission_id,
-        decision="APPROVE_ANKI",
-        model_version="V1_SIM",
-        coach_feedback=None,
-        reason_code=None,
-    )
-    db.add(db_llm_log)
-    db.flush() # Flush to get log_id
-
-    create_anki_card(
-        db=db,
-        student_id=student_id,
-        llm_log_id=db_llm_log.log_id,
-        question=f"What is the key concept in '{problem_text}'?",
-        answer=f"The key concept is {concept_id} ({logical_path_text[:50]}...)",
-    )
+    # 4. Update or create StudentMastery
+    # Check if mastery record exists
+    db_mastery = get_student_mastery(db, student_id, concept_id)
+    if db_mastery:
+        # For now, just update the last_updated time, actual score update logic will be more complex
+        db_mastery.last_updated = datetime.now(UTC)
+        db.add(db_mastery)
+    else:
+        # Create a new mastery record with a default initial score
+        mastery_schema = schemas.StudentMastery(
+            student_id=student_id,
+            concept_id=concept_id,
+            mastery_score=50,  # Default initial score
+            status="IN_PROGRESS",
+        )
+        create_student_mastery(db, mastery_schema)
 
     db.commit()
     db.refresh(db_submission)
 
     return db_submission, manim_data_path
-
-# Placeholder for external LLM API configuration
-LLM_API_URL = "http://localhost:8001/llm-analysis"
-LLM_API_KEY = "your_llm_api_key"
-
-# Placeholder for external Manim Agent API configuration
-MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate"
-MANIM_AGENT_API_KEY = "your_manim_api_key"
-
-# Load LLM simulation configuration
-LLM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "llm_sim_config.json")
-llm_sim_configs = []
-try:
-    with open(LLM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
-        llm_sim_configs = json.load(f)
-except FileNotFoundError:
-    logger.warning(f"LLM simulation config file not found at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
-except json.JSONDecodeError:
-    logger.error(f"Error decoding LLM simulation config file at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
-
-# Load Manim simulation configuration
-MANIM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "manim_sim_config.json")
-manim_sim_configs = []
-try:
-    with open(MANIM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
-        manim_sim_configs = json.load(f)
-except FileNotFoundError:
-    logger.warning(f"Manim simulation config file not found at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
-except json.JSONDecodeError:
-    logger.error(f"Error decoding Manim simulation config file at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
-
-# Placeholder for external LLM API configuration
-LLM_API_URL = "http://localhost:8001/llm-analysis"
-LLM_API_KEY = "your_llm_api_key"
-
-# Placeholder for external Manim Agent API configuration
-MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate"
-MANIM_AGENT_API_KEY = "your_manim_api_key"
-
-# Load LLM simulation configuration
-LLM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "llm_sim_config.json")
-llm_sim_configs = []
-try:
-    with open(LLM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
-        llm_sim_configs = json.load(f)
-except FileNotFoundError:
-    logger.warning(f"LLM simulation config file not found at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
-except json.JSONDecodeError:
-    logger.error(f"Error decoding LLM simulation config file at {LLM_SIM_CONFIG_PATH}. Using default simulations.")
-
-# Load Manim simulation configuration
-MANIM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "manim_sim_config.json")
-manim_sim_configs = []
-try:
-    with open(MANIM_SIM_CONFIG_PATH, "r", encoding="utf-8") as f:
-        manim_sim_configs = json.load(f)
-except FileNotFoundError:
-    logger.warning(f"Manim simulation config file not found at {MANIM_SIM_CONFIG_PATH}. Using default simulations.")
 
 
 # Helper function to get a student
@@ -650,20 +493,10 @@ def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
     }
 
     try:
-        # In a real scenario, you would make an actual HTTP request here.
-        # For now, we'll simulate the Manim Agent's response.
-        # response = requests.post(MANIM_AGENT_API_URL, headers=headers, json=payload)
-        # response.raise_for_status() # Raise an exception for HTTP errors
-        # manim_response = response.json()
-        # return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
-
-        # Simulated Manim Agent response from config
-        for config_entry in manim_sim_configs:
-            if config_entry.get("concept_id") == concept_id:
-                return config_entry["manim_data_path"]
-
-        # Fallback to default if not found in config
-        return "https://youtube.com/watch?v=default_manim_video"
+        response = requests.post(MANIM_AGENT_API_URL, headers=headers, json=payload)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        manim_response = response.json()
+        return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Error calling external Manim Agent API: {e}")
@@ -672,3 +505,5 @@ def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
     except Exception as e:
         logger.error(f"Error processing Manim Agent response: {e}")
         return "https://youtube.com/watch?v=error_manim_video"
+
+
