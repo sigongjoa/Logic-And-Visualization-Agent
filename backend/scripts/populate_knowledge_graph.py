@@ -62,11 +62,14 @@ def populate_knowledge_graph(db):
             {"concept_id": "C_삼각비", "curriculum_id": "M-ALL", "concept_name": "삼각비", "manim_data_path": "manim/M-ALL/삼각비.mp4"},
             {"concept_id": "C_경우의수", "curriculum_id": "M-ALL", "concept_name": "경우의 수", "manim_data_path": "manim/M-ALL/경우의수.mp4"},
             {"concept_id": "C_확률의기본성질", "curriculum_id": "M-ALL", "concept_name": "확률의 기본 성질", "manim_data_path": "manim/M-ALL/확률의기본성질.mp4"},
+            {"concept_id": "C_제곱근", "curriculum_id": "M-ALL", "concept_name": "제곱근", "manim_data_path": "manim/M-ALL/제곱근.mp4"}, # Added missing concept
             
             # H-COMMON
             {"concept_id": "C_항등식과나머지정리", "curriculum_id": "H-COMMON", "concept_name": "항등식과 나머지 정리", "manim_data_path": "manim/H-COMMON/항등식과나머지정리.mp4"},
             {"concept_id": "C_인수분해고차식", "curriculum_id": "H-COMMON", "concept_name": "인수분해 (고차식)", "manim_data_path": "manim/H-COMMON/인수분해고차식.mp4"},
             {"concept_id": "C_복소수", "curriculum_id": "H-COMMON", "concept_name": "복소수", "manim_data_path": "manim/H-COMMON/복소수.mp4"},
+            {"concept_id": "C_다항식고", "curriculum_id": "H-COMMON", "concept_name": "다항식(고)", "manim_data_path": "manim/H-COMMON/다항식고.mp4"}, # Added missing concept
+            {"concept_id": "C_순열과조합고", "curriculum_id": "H-COMMON", "concept_name": "순열과 조합(고)", "manim_data_path": "manim/H-COMMON/순열과조합고.mp4"}, # Added missing concept
             {"concept_id": "C_이차방정식", "curriculum_id": "H-COMMON", "concept_name": "이차방정식", "manim_data_path": "manim/H-COMMON/이차방정식.mp4"},
             {"concept_id": "C_이차함수와이차방정식의관계", "curriculum_id": "H-COMMON", "concept_name": "이차함수와 이차방정식의 관계", "manim_data_path": "manim/H-COMMON/이차함수와이차방정식의관계.mp4"},
             {"concept_id": "C_여러가지방정식", "curriculum_id": "H-COMMON", "concept_name": "여러 가지 방정식", "manim_data_path": "manim/H-COMMON/여러가지방정식.mp4"},
@@ -200,4 +203,6 @@ def populate_knowledge_graph(db):
         db.close()
 
 if __name__ == "__main__":
-    populate_knowledge_graph()
+    Base.metadata.create_all(bind=engine) # Ensure tables are created
+    db_session = next(get_db())
+    populate_knowledge_graph(db_session)

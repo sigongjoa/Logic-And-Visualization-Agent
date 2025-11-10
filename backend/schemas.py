@@ -101,20 +101,36 @@ class CoachComment(BaseModel):
     coach_comment: str
 
 
+class Student(BaseModel):
+    student_id: str
+    student_name: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class Coach(BaseModel):
+    coach_id: str
+    coach_name: str
+    model_config = ConfigDict(from_attributes=True)
+
+class Parent(BaseModel):
+    parent_id: int
+    parent_name: str
+    kakao_user_id: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class Curriculum(BaseModel):
     curriculum_id: str
     curriculum_name: str
     description: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
-
 class Concept(BaseModel):
     concept_id: str
     curriculum_id: Optional[str] = None
     concept_name: str
+    manim_data_path: Optional[str] = None
     description: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
-
 
 class ConceptRelation(BaseModel):
     relation_id: int
@@ -122,7 +138,6 @@ class ConceptRelation(BaseModel):
     to_concept_id: str
     relation_type: str
     model_config = ConfigDict(from_attributes=True)
-
 
 class StudentMastery(BaseModel):
     student_id: str

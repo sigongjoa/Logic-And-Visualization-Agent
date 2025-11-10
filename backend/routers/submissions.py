@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend import schemas, crud
+from backend import schemas, crud, models
 from backend.main import get_db
 import uuid
 
@@ -13,14 +13,14 @@ router = APIRouter(
 def create_submission(
     submission: schemas.SubmissionCreate, db: Session = Depends(get_db)
 ):
-    db_submission = crud.create_submission(db=db, submission=submission)
-    
-    # The crud.create_submission now handles Meta-RAG simulation and model updates.
-    # It also populates logical_path_text and concept_id in db_submission.
-    # We need to retrieve manim_content_url from the concept identified by crud.create_submission.
-    
-    concept = crud.get_concept(db, db_submission.concept_id)
-    manim_content_url = concept.manim_data_path if concept else "https://youtube.com/watch?v=default_video"
+    db_submission, manim_content_url = crud.process_submission(
+        db=db,
+        student_id=submission.student_id,
+        problem_text=submission.problem_text,
+    )
+
+    if not db_submission:
+        raise HTTPException(status_code=400, detail="Submission could not be created.")
 
     return schemas.SubmissionResult(
         submission_id=db_submission.submission_id,

@@ -157,6 +157,283 @@ paths:
         '201':
           description: "피드백 기록 성공"
 
+  /students:
+    get:
+      summary: "모든 학생 정보 조회"
+      tags:
+        - "Users"
+      responses:
+        '200':
+          description: "학생 정보 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+
+  /students/{student_id}:
+    get:
+      summary: "특정 학생 정보 조회"
+      tags:
+        - "Users"
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "학생 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+
+  /coaches:
+    get:
+      summary: "모든 코치 정보 조회"
+      tags:
+        - "Users"
+      responses:
+        '200':
+          description: "코치 정보 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coach'
+
+  /coaches/{coach_id}:
+    get:
+      summary: "특정 코치 정보 조회"
+      tags:
+        - "Users"
+      parameters:
+        - name: coach_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "코치 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coach'
+
+  /parents:
+    get:
+      summary: "모든 학부모 정보 조회"
+      tags:
+        - "Users"
+      responses:
+        '200':
+          description: "학부모 정보 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Parent'
+
+  /parents/{parent_id}:
+    get:
+      summary: "특정 학부모 정보 조회"
+      tags:
+        - "Users"
+      parameters:
+        - name: parent_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "학부모 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Parent'
+
+  /curriculums:
+    get:
+      summary: "모든 커리큘럼 정보 조회"
+      tags:
+        - "Knowledge Graph"
+      responses:
+        '200':
+          description: "커리큘럼 정보 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Curriculum'
+
+  /curriculums/{curriculum_id}:
+    get:
+      summary: "특정 커리큘럼 정보 조회"
+      tags:
+        - "Knowledge Graph"
+      parameters:
+        - name: curriculum_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "커리큘럼 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curriculum'
+
+  /concepts:
+    get:
+      summary: "모든 개념 노드 조회"
+      tags:
+        - "Knowledge Graph"
+      responses:
+        '200':
+          description: "개념 노드 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Concept'
+
+  /concepts/{concept_id}:
+    get:
+      summary: "특정 개념 노드 조회"
+      tags:
+        - "Knowledge Graph"
+      parameters:
+        - name: concept_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "개념 노드 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concept'
+
+  /concept-relations:
+    get:
+      summary: "모든 개념 관계 조회"
+      tags:
+        - "Knowledge Graph"
+      responses:
+        '200':
+          description: "개념 관계 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConceptRelation'
+
+  /concept-relations/{relation_id}:
+    get:
+      summary: "특정 개념 관계 조회"
+      tags:
+        - "Knowledge Graph"
+      parameters:
+        - name: relation_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "개념 관계 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConceptRelation'
+
+  /student-mastery:
+    get:
+      summary: "모든 학생별 개념 숙련도 조회"
+      tags:
+        - "Knowledge Graph"
+      responses:
+        '200':
+          description: "학생별 개념 숙련도 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentMastery'
+
+  /student-mastery/{student_id}/{concept_id}:
+    get:
+      summary: "특정 학생의 특정 개념 숙련도 조회"
+      tags:
+        - "Knowledge Graph"
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: concept_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "학생별 개념 숙련도 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentMastery'
+
+  /anki-cards:
+    get:
+      summary: "모든 Anki 카드 조회"
+      tags:
+        - "Anki"
+      responses:
+        '200':
+          description: "Anki 카드 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnkiCard'
+
+  /anki-cards/{card_id}:
+    get:
+      summary: "특정 Anki 카드 조회"
+      tags:
+        - "Anki"
+      parameters:
+        - name: card_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Anki 카드 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnkiCard'
+
 components:
   schemas:
     VectorAxis:
@@ -178,7 +455,24 @@ components:
           format: date-time
         axis1_geo:
           $ref: '#/components/schemas/VectorAxis'
-        # ... (10개 축 추가) ...
+        axis1_alg:
+          $ref: '#/components/schemas/VectorAxis'
+        axis1_ana:
+          $ref: '#/components/schemas/VectorAxis'
+        axis2_opt:
+          $ref: '#/components/schemas/VectorAxis'
+        axis2_piv:
+          $ref: '#/components/schemas/VectorAxis'
+        axis2_dia:
+          $ref: '#/components/schemas/VectorAxis'
+        axis3_con:
+          $ref: '#/components/schemas/VectorAxis'
+        axis3_pro:
+          $ref: '#/components/schemas/VectorAxis'
+        axis3_ret:
+          $ref: '#/components/schemas/VectorAxis'
+        axis4_acc:
+          $ref: '#/components/schemas/VectorAxis'
         axis4_gri:
           $ref: '#/components/schemas/VectorAxis'
 
@@ -207,7 +501,15 @@ components:
           description: "코치가 직접 입력한 11개 축의 점수"
           properties:
             axis1_geo: { $ref: '#/components/schemas/VectorAxis' }
-            # ... (10개 축 추가) ...
+            axis1_alg: { $ref: '#/components/schemas/VectorAxis' }
+            axis1_ana: { $ref: '#/components/schemas/VectorAxis' }
+            axis2_opt: { $ref: '#/components/schemas/VectorAxis' }
+            axis2_piv: { $ref: '#/components/schemas/VectorAxis' }
+            axis2_dia: { $ref: '#/components/schemas/VectorAxis' }
+            axis3_con: { $ref: '#/components/schemas/VectorAxis' }
+            axis3_pro: { $ref: '#/components/schemas/VectorAxis' }
+            axis3_ret: { $ref: '#/components/schemas/VectorAxis' }
+            axis4_acc: { $ref: '#/components/schemas/VectorAxis' }
             axis4_gri: { $ref: '#/components/schemas/VectorAxis' }
 
     SubmissionCreate:
@@ -259,6 +561,15 @@ components:
           type: integer
         student_id:
           type: string
+        coach_id:
+          type: string
+          nullable: true
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
         status:
           type: string
           enum: [DRAFT, FINALIZED, SENT]
@@ -271,6 +582,14 @@ components:
           type: string
         coach_comment:
           type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        finalized_at:
+          type: string
+          format: date-time
+          nullable: true
 
     LLMFeedback:
       type: object
@@ -283,3 +602,111 @@ components:
         reason_code:
           type: string
           example: "SIMPLE_MISTAKE"
+    
+    Student:
+      type: object
+      properties:
+        student_id:
+          type: string
+        student_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Coach:
+      type: object
+      properties:
+        coach_id:
+          type: string
+        coach_name:
+          type: string
+
+    Parent:
+      type: object
+      properties:
+        parent_id:
+          type: integer
+        parent_name:
+          type: string
+        kakao_user_id:
+          type: string
+          nullable: true
+
+    Curriculum:
+      type: object
+      properties:
+        curriculum_id:
+          type: string
+        curriculum_name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Concept:
+      type: object
+      properties:
+        concept_id:
+          type: string
+        curriculum_id:
+          type: string
+        concept_name:
+          type: string
+        manim_data_path:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    ConceptRelation:
+      type: object
+      properties:
+        relation_id:
+          type: integer
+        from_concept_id:
+          type: string
+        to_concept_id:
+          type: string
+        relation_type:
+          type: string
+
+    StudentMastery:
+      type: object
+      properties:
+        student_id:
+          type: string
+        concept_id:
+          type: string
+        mastery_score:
+          type: integer
+        status:
+          type: string
+        last_updated:
+          type: string
+          format: date-time
+
+    AnkiCard:
+      type: object
+      properties:
+        card_id:
+          type: integer
+        student_id:
+          type: string
+        llm_log_id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        next_review_date:
+          type: string
+          format: date-time
+        interval_days:
+          type: integer
+        ease_factor:
+          type: number
+          format: float
+        repetitions:
+          type: integer

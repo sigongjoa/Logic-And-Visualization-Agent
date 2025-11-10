@@ -4,7 +4,7 @@ from backend import models, crud, schemas
 from backend.main import SessionLocal, engine
 from datetime import datetime, timedelta, timezone # Added timezone
 
-async def generate_weekly_reports(db: Session):
+def generate_weekly_reports(db: Session):
     with open("report_generation.log", "a") as log_file:
         try:
             # 1. Get all students
@@ -109,11 +109,12 @@ async def generate_weekly_reports(db: Session):
                 log_file.write(f"Generated DRAFT report for {student.student_name}\n")
 
         finally:
-            db.close()
+            # The session is managed by the caller (get_db() context)
+            pass
 
 if __name__ == "__main__":
     # This script is intended to be run as a scheduled job.
     # For V1, we run it manually.
     models.Base.metadata.create_all(bind=engine)
-    db_session = SessionLocal()
-    asyncio.run(generate_weekly_reports(db=db_session))
+    with SessionLocal() as db_session: # Use SessionLocal as a context manager
+        generate_weekly_reports(db=db_session)
