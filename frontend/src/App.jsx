@@ -6,7 +6,8 @@ import SubmissionResult from './components/SubmissionResult';
 import CoachDashboard from './components/CoachDashboard';
 import StudentDetail from './components/StudentDetail';
 import CoachReportReview from './components/CoachReportReview';
-import AssignmentReview from './components/AssignmentReview'; // New import
+import AssignmentReview from './components/AssignmentReview';
+import StudentDashboard from './components/StudentDashboard'; // New import
 import './App.css';
 
 function App() {
@@ -25,10 +26,13 @@ function App() {
               <Link to="/submit">Submit Problem</Link>
             </li>
             <li>
-              <Link to="/coach">Coach Dashboard</Link> {/* New navigation link */}
+              <Link to="/coach">Coach Dashboard</Link>
             </li>
             <li>
-              <Link to="/coach/reports">Coach Report Review</Link> {/* New navigation link */}
+              <Link to="/coach/reports">Coach Report Review</Link>
+            </li>
+            <li>
+              <Link to="/student/dashboard">Student Dashboard</Link> {/* New navigation link */}
             </li>
           </ul>
         </nav>
@@ -40,7 +44,8 @@ function App() {
           <Route path="/submission-result" element={<SubmissionResult />} />
           <Route path="/coach" element={<CoachDashboard />} />
           <Route path="/coach/students/:studentId" element={<StudentDetail />} />
-          <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} /> {/* New route */}
+          <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} />
+          <Route path="/student/dashboard" element={<StudentDashboard />} /> {/* New route */}
           <Route path="/coach/reports" element={<CoachReportReview />} />
         </Routes>
       </div>
