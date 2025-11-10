@@ -1,0 +1,5 @@
+{
+  "name": "Logic-And-Visualization-Agent Showcase",
+  "description": "A comprehensive web application showcasing various user interface pages for a learning management system, including dashboards for students and coaches, assignment submission and review workflows, and other administrative views. This application also features an AI-powered feedback generation tool for coaches.",
+  "requestFramePermissions": []
+}
