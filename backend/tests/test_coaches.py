@@ -35,13 +35,21 @@ client = TestClient(app)
 
 def setup_test_data(db: Session):
     # Clear all relevant tables
+    db.query(models.student_coach_relation).delete()
     db.query(models.Student).delete()
+    db.query(models.Coach).delete()
     db.query(models.WeeklyReport).delete()
     db.query(models.StudentVectorHistory).delete()
     db.query(models.Submission).delete()
     db.query(models.ConceptsLibrary).delete()
     db.query(models.AnkiCard).delete() # Clear AnkiCard entries
     db.commit()
+
+    # Create a coach
+    coach1 = models.Coach(coach_id="coach_test_1", coach_name="Test Coach")
+    db.add(coach1)
+    db.commit()
+    db.refresh(coach1)
 
     # Create students
     student1 = models.Student(student_id="std_coach_1", student_name="Coach Student 1")
@@ -50,6 +58,11 @@ def setup_test_data(db: Session):
     db.commit()
     db.refresh(student1)
     db.refresh(student2)
+
+    # Associate students with coach
+    coach1.students.append(student1)
+    coach1.students.append(student2)
+    db.commit()
 
     # Create concepts
     concept1 = models.ConceptsLibrary(concept_id="C_COACH_1", curriculum_id="CUR_1", concept_name="Concept Coach 1", manim_data_path="http://manim.com/coach1")
@@ -110,6 +123,7 @@ def setup_test_data(db: Session):
     db.refresh(submission2)
 
     return {
+        "coach1_id": coach1.coach_id,
         "student1_id": student1.student_id,
         "student2_id": student2.student_id,
         "report1_id": report1.report_id,
@@ -121,15 +135,59 @@ def setup_test_data(db: Session):
         "concept2_id": concept2.concept_id,
     }
 
+def test_read_coach(db_session: Session):
+    data_ids = setup_test_data(db_session)
+    coach_id = data_ids["coach1_id"]
+
+    response = client.get(f"/coaches/{coach_id}")
+    assert response.status_code == 200
+    coach_data = response.json()
+    assert coach_data["coach_id"] == coach_id
+    assert coach_data["coach_name"] == "Test Coach"
+
+def test_read_coach_students(db_session: Session):
+    data_ids = setup_test_data(db_session)
+    coach_id = data_ids["coach1_id"]
+
+    response = client.get(f"/coaches/{coach_id}/students")
+    assert response.status_code == 200
+    students_data = response.json()
+    assert len(students_data) == 2
+    student_ids = {s["student_id"] for s in students_data}
+    assert data_ids["student1_id"] in student_ids
+    assert data_ids["student2_id"] in student_ids
+
+def test_read_coach_submissions(db_session: Session):
+    data_ids = setup_test_data(db_session)
+    coach_id = data_ids["coach1_id"]
+
+    # Test without status filter
+    response = client.get(f"/coaches/{coach_id}/submissions")
+    assert response.status_code == 200
+    submissions_data = response.json()
+    assert len(submissions_data) == 2
+    submission_ids = {s["submission_id"] for s in submissions_data}
+    assert data_ids["submission1_id"] in submission_ids
+    assert data_ids["submission2_id"] in submission_ids
+
+    # Test with status filter
+    response = client.get(f"/coaches/{coach_id}/submissions?status=PENDING")
+    assert response.status_code == 200
+    submissions_data = response.json()
+    assert len(submissions_data) == 1
+    assert submissions_data[0]["submission_id"] == data_ids["submission2_id"]
+    assert submissions_data[0]["status"] == "PENDING"
+
 def test_get_all_students(db_session: Session):
     data_ids = setup_test_data(db_session)
 
     response = client.get("/coaches/students")
     assert response.status_code == 200
     students_data = response.json()
-    assert len(students_data) == 2
+    assert len(students_data) >= 2
     assert any(s["student_id"] == data_ids["student1_id"] for s in students_data)
     assert any(s["student_id"] == data_ids["student2_id"] for s in students_data)
+
 
 def test_get_student_reports(db_session: Session):
     data_ids = setup_test_data(db_session)

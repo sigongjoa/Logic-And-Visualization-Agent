@@ -17,11 +17,47 @@ export const createSubmission = async (submissionData) => {
   return response.json();
 };
 
-export const getStudents = async () => {
-  const response = await fetch(`${API_BASE_URL}/coaches/students`);
+export const getAllStudents = async () => {
+  const response = await fetch(`${API_BASE_URL}/students`);
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.detail || 'Failed to fetch students');
+  }
+  return response.json();
+};
+
+export const getCoaches = async () => {
+  const response = await fetch(`${API_BASE_URL}/coaches`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to fetch coaches');
+  }
+  return response.json();
+};
+
+export const getCoach = async (coachId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/${coachId}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch coach ${coachId}`);
+  }
+  return response.json();
+};
+
+export const getStudentsByCoach = async (coachId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/${coachId}/students`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch students for coach ${coachId}`);
+  }
+  return response.json();
+};
+
+export const getPendingSubmissionsByCoach = async (coachId) => {
+  const response = await fetch(`${API_BASE_URL}/coaches/${coachId}/submissions?status=PENDING`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Failed to fetch pending submissions for coach ${coachId}`);
   }
   return response.json();
 };

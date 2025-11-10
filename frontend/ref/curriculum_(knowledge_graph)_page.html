@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Curriculum Knowledge Graph - Logic-And-Visualization-Agent</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden text-slate-800 dark:text-slate-200">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200/80 dark:border-slate-800/80 px-10 py-3 bg-white dark:bg-background-dark/50 sticky top-0 z-20 backdrop-blur-sm">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_535)">
+<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+</g>
+<defs>
+<clippath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clippath>
+</defs>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Logic-And-Visualization-Agent</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9">
+<a class="text-sm font-medium leading-normal text-slate-800 dark:text-slate-200" href="#">Dashboard</a>
+<a class="text-sm font-medium leading-normal text-primary dark:text-primary" href="#">Curriculum</a>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar with abstract background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-O71gXzAJFvBOt9HcZ8_R_PZdUkl5qkQ6Sj0IMm95qQmODsWyHE3BQCf76iYd9CMbUIGezT0WrQ9gw0592nR5RCN6E7TE0rrGb3pjokfq0k1Bd-npGEDQXs3n8E9wZVxSB1fW0-RCXoFSY5_DN2tcb3nbSfDerIcQJk7KcB4jKlaX6A3PnyWs9Le89nC4lDhw2Q9F2I1Tv3PCZYhmssw_IqmPIrYihKUymkQxyUUlcjTw9J2seZl4CFGScxfLk_HNWYWLv5fqzg");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col p-6 lg:p-10">
+<div class="flex flex-col gap-4 mb-6">
+<div class="flex flex-wrap justify-between gap-3">
+<div class="flex min-w-72 flex-col gap-2">
+<p class="text-slate-900 dark:text-slate-100 text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">Curriculum Knowledge Graph</p>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">Explore the connections between different topics and concepts on your learning path.</p>
+</div>
+</div>
+<div class="max-w-md">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-400 dark:text-slate-500 flex bg-white dark:bg-slate-900/50 items-center justify-center pl-4 rounded-l-lg border border-slate-200 dark:border-slate-800 border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 h-full placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-2 text-base font-normal leading-normal" placeholder="Search for a specific topic..." value=""/>
+</div>
+</label>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[600px]">
+<div class="lg:col-span-2 relative flex flex-col bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="absolute top-4 left-4 z-10 flex gap-2 bg-white/70 dark:bg-background-dark/70 backdrop-blur-sm p-1 rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+<button class="p-2 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="p-2 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">zoom_out</span>
+</button>
+<button class="p-2 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">fullscreen_exit</span>
+</button>
+</div>
+<div class="flex w-full grow bg-white dark:bg-slate-900/50 @container p-3 rounded-xl">
+<div class="w-full bg-center bg-no-repeat bg-cover aspect-auto rounded-lg flex-1" data-alt="A visual representation of a curriculum knowledge graph with interconnected nodes and lines." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDpqKzhkDYXW464rY0yK0HyweFkfwc85iorj-x7zLs0Qxoze6ciZDid2tLYp0-OeWF3XT_YBv64O10d1_rVOdObKwPzoMnH0VNRSIzrCBrZzLzwwtiB3pN25tV78UF_-6EUAQMytEepIuzv8-6-3lvpUJH6DspIqFxJqPbh1p6duLjrvXqhGZigGYaFOGni07M97CVuNgU5lCGBDiaNUqkPbZ8p6VScj-BAAZV_PUZ0jxlbX22uhPzimwJ_chGTTYAJAQ6A5WBZAA");'></div>
+</div>
+</div>
+<aside class="lg:col-span-1 flex flex-col bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Linear Equations</h3>
+<span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">Completed</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">This topic covers the fundamentals of linear equations, including how to solve for variables, graph lines, and understand slope-intercept form. It's a foundational concept in algebra.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Prerequisites</h4>
+<a class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-primary text-xl">link</span>
+<span class="font-medium text-slate-800 dark:text-slate-200">Introduction to Algebra</span>
+</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Key Concepts</h4>
+<ul class="space-y-2">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary/80 mt-0.5">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Solving for 'x'</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary/80 mt-0.5">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Graphing lines on a Cartesian plane</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary/80 mt-0.5">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Understanding slope-intercept form (y=mx+b)</span>
+</li>
+</ul>
+</div>
+<div class="pt-4 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 rounded-lg bg-primary h-12 px-6 text-base font-medium text-white shadow-sm transition-all hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+<span class="material-symbols-outlined">refresh</span>
+                                Review Topic
+                            </button>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</body></html>

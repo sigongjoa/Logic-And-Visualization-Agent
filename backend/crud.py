@@ -174,6 +174,12 @@ def get_student(db: Session, student_id: str):
 def get_coach(db: Session, coach_id: str):
     return db.query(models.Coach).filter(models.Coach.coach_id == coach_id).first()
 
+def get_students_by_coach(db: Session, coach_id: str) -> List[models.Student]:
+    coach = get_coach(db, coach_id)
+    if coach:
+        return coach.students
+    return []
+
 # Helper function to get a parent
 def get_parent(db: Session, parent_id: int):
     return db.query(models.Parent).filter(models.Parent.parent_id == parent_id).first()
@@ -185,6 +191,22 @@ def get_assessment(db: Session, assessment_id: str):
 # Helper function to get a submission
 def get_submission(db: Session, submission_id: str):
     return db.query(models.Submission).filter(models.Submission.submission_id == submission_id).first()
+
+def get_submissions_by_coach(db: Session, coach_id: str, status: Optional[str] = None) -> List[models.Submission]:
+    coach = get_coach(db, coach_id)
+    if not coach:
+        return []
+    
+    student_ids = [student.student_id for student in coach.students]
+    if not student_ids:
+        return []
+        
+    query = db.query(models.Submission).filter(models.Submission.student_id.in_(student_ids))
+    
+    if status:
+        query = query.filter(models.Submission.status == status)
+        
+    return query.order_by(models.Submission.submitted_at.desc()).all()
 
 # Helper function to get a concept
 def get_concept(db: Session, concept_id: str):

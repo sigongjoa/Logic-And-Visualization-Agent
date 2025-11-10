@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Logic-And-Visualization-Agent - Assignment Review</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-10 py-3 bg-white dark:bg-slate-900/70 sticky top-0 z-10 backdrop-blur-sm">
+<div class="flex items-center gap-4 text-slate-800 dark:text-slate-200">
+<div class="size-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Logic-And-Visualization-Agent</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-center gap-8">
+<div class="flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-slate-900 dark:text-white text-sm font-bold leading-normal border-b-2 border-primary pb-1" href="#">Assignments</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal" href="#">Students</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex gap-2">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar of a coach" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC6DtE2JcgtLNuB5OFLfm7C4ZmAWun2ZEd4eD-cBnbuW8RYAd7pw5D7jVYV-cDPqHjBMUhCWhC1fnazME4hVr5W8bBX-pYZgiQXqeYzAiY7FlVOxXV6bVHApq5Gp1prpn_orB5zktJErovqAhbPcSJeWkMCjGU7Rp5drhimYNpZsZ_ww5RkLYwGNub--Vz4-RhZfXtyt6hKzCPCOpqwJ2iqfRis18O4tOTb_zQlyF2UnPuuIdkXaSHdAGjeO6LHnccGwsQFlQ-ocw");'></div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-4">
+<div class="flex flex-wrap items-center gap-2">
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary" href="#">All Assignments</a>
+<span class="text-slate-400 dark:text-slate-500 text-sm font-medium leading-normal">/</span>
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary" href="#">UX Design Principles</a>
+<span class="text-slate-400 dark:text-slate-500 text-sm font-medium leading-normal">/</span>
+<span class="text-slate-800 dark:text-white text-sm font-medium leading-normal">John Doe</span>
+</div>
+<div class="flex flex-wrap justify-between gap-4 items-start">
+<div class="flex min-w-72 flex-col gap-1">
+<p class="text-slate-900 dark:text-white text-3xl font-bold leading-tight tracking-tight">UX Design Principles</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">Submitted On Time: Oct 26, 2023, 11:59 PM</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 gap-y-8">
+<div class="flex flex-col gap-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Student Submission</h3>
+<div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+<div class="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar of student John Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCR-K6qvwsOC5Xy6OZgnRz-K9FgX06m1A9-GxbV0BwLZPVzlQ5tRAigZibxFsJpS15Px3v4OdWuX80PEDWRYe4FOXT1VXHCqQxF1VUsa3kk_WtcY3_WAB0bOSPk-eUklodK0JdE7w8AuJcJJh6sqQ3cU7yIyO3k44ZMSBDNsvlNU2t_oartfvbbDQjTHZtRgM4rYQApIhxacJCpSAI78h-pyDasKcMlhXT-2zPfKF8-4nwtgH3qxqiGh7kmrHEAmvs5NoVThb5bkw");'></div>
+<p class="text-slate-800 dark:text-slate-200 text-base font-semibold leading-normal flex-1 truncate">John Doe</p>
+</div>
+</div>
+<div class="p-4 sm:p-6 prose prose-slate dark:prose-invert max-w-none">
+<h4>Introduction to User-Centered Design</h4>
+<p>User-centered design (UCD) is an iterative design process in which designers focus on the users and their needs in each phase of the design process. In UCD, design teams involve users throughout the design process via a variety of research and design techniques, to create highly usable and accessible products for them.</p>
+<h4>Key Principles</h4>
+<p>The core principles of UCD revolve around understanding the user's context, requirements, and feedback. This involves several key activities:</p>
+<ul>
+<li><strong>User Research:</strong> Conducting interviews, surveys, and observational studies to understand the user's behaviors, goals, and motivations.</li>
+<li><strong>Persona Creation:</strong> Developing fictional characters based on user research to represent the different user types that might use a service, product, site, or brand in a similar way.</li>
+<li><strong>Prototyping &amp; Testing:</strong> Creating wireframes, mockups, or interactive prototypes to test with actual users. This iterative process allows for early feedback and refinement before significant development resources are invested.</li>
+</ul>
+<h4>Conclusion</h4>
+<p>By placing the user at the heart of the design process, we can create products that are not only functional but also enjoyable and intuitive to use. This approach ultimately leads to higher user satisfaction and product success. It ensures that the final product will meet the expectations and needs of the target audience, reducing the risk of failure in the market.</p>
+<p>The continuous feedback loop in UCD is what makes it so powerful. It's not about getting it right the first time, but about iterating towards the best possible solution based on real user data.</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Coach Assessment</h3>
+<div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-4 sm:p-6 flex flex-col gap-6">
+<div class="flex items-start gap-4 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50">
+<span class="material-symbols-outlined text-xl text-yellow-600 dark:text-yellow-500 mt-0.5">auto_awesome</span>
+<div class="flex-1">
+<p class="font-semibold text-yellow-800 dark:text-yellow-300">AI-Generated Draft</p>
+<p class="text-sm text-yellow-700 dark:text-yellow-400">Please review and edit this initial feedback before sending it to the student.</p>
+</div>
+<button class="text-yellow-600 dark:text-yellow-500 hover:text-yellow-800 dark:hover:text-yellow-300">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="final-score">Final Score</label>
+<div class="relative">
+<input class="w-32 rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary" id="final-score" max="100" min="0" name="final-score" placeholder="--" type="number"/>
+<span class="absolute inset-y-0 left-24 flex items-center pr-3 text-slate-500 dark:text-slate-400">/ 100</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="written-feedback">Written Feedback</label>
+<div class="rounded-lg border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+<div class="p-2 border-b border-slate-300 dark:border-slate-700 flex items-center gap-2">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"><span class="material-symbols-outlined text-xl">format_bold</span></button>
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"><span class="material-symbols-outlined text-xl">format_italic</span></button>
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"><span class="material-symbols-outlined text-xl">format_list_bulleted</span></button>
+</div>
+<textarea class="w-full border-0 bg-transparent p-3 focus:ring-0 text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" id="written-feedback" name="written-feedback" placeholder="Provide constructive feedback for the student..." rows="10">Excellent summary of UCD principles, John. You've clearly grasped the core concepts of user research and iterative design.
+For your next assignment, try to include a specific, real-world example to illustrate one of the principles. For instance, you could discuss how a company like Airbnb used user feedback to refine their booking process. This will make your analysis even stronger.
+Great work overall!</textarea>
+</div>
+</div>
+<div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+<button class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Save Draft</button>
+<button class="flex items-center justify-center rounded-lg h-11 bg-primary text-white gap-2 text-sm font-bold leading-normal tracking-[-0.015em] px-6 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Send Feedback
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
