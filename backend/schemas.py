@@ -89,6 +89,26 @@ class Notification(BaseModel):
     is_read: bool
     related_id: Optional[str] = None
 
+class UserMe(BaseModel):
+    user_id: str
+    username: str
+    email: str
+    user_type: Literal["student", "coach"]
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+
+class UserPasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_new_password: str
+
+class UserNotificationUpdate(BaseModel):
+    new_assignments: bool
+    feedback_from_coach: bool
+    platform_updates: bool
+
 class WeeklyReport(BaseModel):
     report_id: int
     student_id: str

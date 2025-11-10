@@ -163,6 +163,71 @@ export const markAllNotificationsAsRead = async () => {
     return response.json();
 };
 
+export const getUserProfile = async () => {
+    const response = await fetch(`${API_BASE_URL}/users/me`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch user profile');
+    }
+    return response.json();
+};
+
+export const updateUserProfile = async (profileData) => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update user profile');
+    }
+    return response.json();
+};
+
+export const updateUserPassword = async (passwordData) => {
+    const response = await fetch(`${API_BASE_URL}/users/me/password`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(passwordData),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update password');
+    }
+    return response.json();
+};
+
+export const updateUserNotifications = async (notificationSettings) => {
+    const response = await fetch(`${API_BASE_URL}/users/me/notifications`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notificationSettings),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update notification settings');
+    }
+    return response.json();
+};
+
+export const deactivateAccount = async () => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to deactivate account');
+    }
+    return response.json();
+};
+
 export const getStudentReports = async (studentId) => {
   const response = await fetch(`${API_BASE_URL}/students/${studentId}/reports`);
   if (!response.ok) {

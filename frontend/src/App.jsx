@@ -10,9 +10,15 @@ import AssignmentReview from './components/AssignmentReview';
 import StudentDashboard from './components/StudentDashboard';
 import CurriculumPage from './components/CurriculumPage';
 import LoginPage from './components/LoginPage';
-import NotificationCenter from './components/NotificationCenter'; // New import
+import NotificationCenter from './components/NotificationCenter';
+import UserSettingsPage from './components/UserSettingsPage'; // New import
 import './App.css';
 
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        {/* Navigation links removed as login page is the entry point */}
         <Routes>
           <Route path="/" element={<LoginPage />} /> {/* Set LoginPage as default route */}
           <Route path="/home" element={<Home />} />
@@ -24,7 +30,8 @@ import './App.css';
           <Route path="/coach/submissions/:submissionId" element={<AssignmentReview />} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/curriculum" element={<CurriculumPage />} />
-          <Route path="/notifications" element={<NotificationCenter />} /> {/* New route */}
+          <Route path="/notifications" element={<NotificationCenter />} />
+          <Route path="/settings" element={<UserSettingsPage />} /> {/* New route */}
           <Route path="/coach/reports" element={<CoachReportReview />} />
         </Routes>
       </div>

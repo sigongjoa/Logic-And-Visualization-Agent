@@ -74,6 +74,91 @@ paths:
           description: All notifications marked as read
       tags:
         - Notifications
+  /users/me:
+    get:
+      summary: Get current user's profile
+      operationId: get_current_user_profile
+      responses:
+        "200":
+          description: Current user's profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+        "401":
+          description: Unauthorized
+      tags:
+        - Users
+    put:
+      summary: Update current user's profile
+      operationId: update_current_user_profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        "200":
+          description: User profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+        "401":
+          description: Unauthorized
+      tags:
+        - Users
+    delete:
+      summary: Deactivate current user's account
+      operationId: deactivate_current_user_account
+      responses:
+        "200":
+          description: Account deactivated successfully
+        "401":
+          description: Unauthorized
+      tags:
+        - Users
+  /users/me/password:
+    put:
+      summary: Update current user's password
+      operationId: update_current_user_password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordUpdate'
+      responses:
+        "200":
+          description: Password updated successfully
+        "401":
+          description: Unauthorized
+        "400":
+          description: Invalid current password or new passwords do not match
+      tags:
+        - Users
+  /users/me/notifications:
+    put:
+      summary: Update current user's notification preferences
+      operationId: update_current_user_notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotificationUpdate'
+      responses:
+        "200":
+          description: Notification preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotificationUpdate'
+        "401":
+          description: Unauthorized
+      tags:
+        - Users
   /students/{student_id}/vector-history:
     get:
       summary: "학생의 4축 모델 성장 이력 조회 (코치용)"
@@ -941,3 +1026,67 @@ components:
           title: Related Id
           type: string
           nullable: true
+    UserMe:
+      title: UserMe
+      required:
+        - user_id
+        - username
+        - email
+        - user_type
+      type: object
+      properties:
+        user_id:
+          title: User Id
+          type: string
+        username:
+          title: Username
+          type: string
+        email:
+          title: Email
+          type: string
+        user_type:
+          title: User Type
+          type: string
+          enum:
+            - student
+            - coach
+    UserUpdate:
+      title: UserUpdate
+      type: object
+      properties:
+        username:
+          title: Username
+          type: string
+        email:
+          title: Email
+          type: string
+    UserPasswordUpdate:
+      title: UserPasswordUpdate
+      required:
+        - current_password
+        - new_password
+        - confirm_new_password
+      type: object
+      properties:
+        current_password:
+          title: Current Password
+          type: string
+        new_password:
+          title: New Password
+          type: string
+        confirm_new_password:
+          title: Confirm New Password
+          type: string
+    UserNotificationUpdate:
+      title: UserNotificationUpdate
+      type: object
+      properties:
+        new_assignments:
+          title: New Assignments
+          type: boolean
+        feedback_from_coach:
+          title: Feedback From Coach
+          type: boolean
+        platform_updates:
+          title: Platform Updates
+          type: boolean
