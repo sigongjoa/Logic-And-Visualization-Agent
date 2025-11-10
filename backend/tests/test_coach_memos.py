@@ -46,7 +46,7 @@ def test_create_coach_memo():
     }
 
     # 3. Call the API endpoint
-    response = client.post("/coach-memos", json=memo_data)
+    response = client.post("/coach-memos/", json=memo_data)
 
     # 4. Assert the response
     assert response.status_code == 201
@@ -65,3 +65,54 @@ def test_create_coach_memo():
     assert memo_entry.student_id == student_id
     assert memo_entry.memo_text == memo_data["memo_text"]
     db.close()
+
+def test_read_coach_memos():
+    db = TestingSessionLocal()
+    # Setup: Clear old memos and create new data
+    db.query(models.CoachMemo).delete()
+    db.commit()
+
+    coach_id1 = "coach_memo_1"
+    coach_id2 = "coach_memo_2"
+    student_id1 = "std_memo_1"
+    student_id2 = "std_memo_2"
+
+    # Create coaches and students if they don't exist
+    if not db.query(models.Coach).filter_by(coach_id=coach_id1).first():
+        db.add(models.Coach(coach_id=coach_id1, coach_name="Memo Coach 1"))
+    if not db.query(models.Coach).filter_by(coach_id=coach_id2).first():
+        db.add(models.Coach(coach_id=coach_id2, coach_name="Memo Coach 2"))
+    if not db.query(models.Student).filter_by(student_id=student_id1).first():
+        db.add(models.Student(student_id=student_id1, student_name="Memo Student 1"))
+    if not db.query(models.Student).filter_by(student_id=student_id2).first():
+        db.add(models.Student(student_id=student_id2, student_name="Memo Student 2"))
+    db.commit()
+
+    # Create memos
+    memo1 = models.CoachMemo(coach_id=coach_id1, student_id=student_id1, memo_text="Memo 1")
+    memo2 = models.CoachMemo(coach_id=coach_id1, student_id=student_id2, memo_text="Memo 2")
+    memo3 = models.CoachMemo(coach_id=coach_id2, student_id=student_id1, memo_text="Memo 3")
+    db.add_all([memo1, memo2, memo3])
+    db.commit()
+    db.close()
+
+    # Test fetching all memos
+    response = client.get("/coach-memos/")
+    assert response.status_code == 200
+    assert len(response.json()) >= 3
+
+    # Test fetching memos for a specific student
+    response = client.get(f"/coach-memos/?student_id={student_id1}")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert any(d["memo_text"] == "Memo 1" for d in data)
+    assert any(d["memo_text"] == "Memo 3" for d in data)
+
+    # Test fetching memos for a specific coach
+    response = client.get(f"/coach-memos/?coach_id={coach_id1}")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert any(d["memo_text"] == "Memo 1" for d in data)
+    assert any(d["memo_text"] == "Memo 2" for d in data)

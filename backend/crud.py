@@ -328,6 +328,14 @@ def create_coach_memo(db: Session, memo: schemas.CoachMemoCreate):
     db.refresh(db_memo)
     return db_memo
 
+def get_coach_memos(db: Session, student_id: Optional[str] = None, coach_id: Optional[str] = None) -> List[models.CoachMemo]:
+    query = db.query(models.CoachMemo)
+    if student_id:
+        query = query.filter(models.CoachMemo.student_id == student_id)
+    if coach_id:
+        query = query.filter(models.CoachMemo.coach_id == coach_id)
+    return query.order_by(models.CoachMemo.created_at.desc()).all()
+
 # LLM Log and Feedback
 def create_llm_log_feedback(
     db: Session,

@@ -26,6 +26,15 @@ export const getAllStudents = async () => {
   return response.json();
 };
 
+export const getStudent = async (studentId) => {
+    const response = await fetch(`${API_BASE_URL}/students/${studentId}`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Failed to fetch student ${studentId}`);
+    }
+    return response.json();
+};
+
 export const getCoaches = async () => {
   const response = await fetch(`${API_BASE_URL}/coaches`);
   if (!response.ok) {
@@ -60,6 +69,15 @@ export const getPendingSubmissionsByCoach = async (coachId) => {
     throw new Error(errorData.detail || `Failed to fetch pending submissions for coach ${coachId}`);
   }
   return response.json();
+};
+
+export const getCoachMemos = async (studentId) => {
+    const response = await fetch(`${API_BASE_URL}/coach-memos/?student_id=${studentId}`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Failed to fetch memos for student ${studentId}`);
+    }
+    return response.json();
 };
 
 export const getStudentReports = async (studentId) => {

@@ -72,6 +72,30 @@ paths:
                 $ref: '#/components/schemas/SubmissionResult'
 
   /coach-memos:
+    get:
+      summary: "코치 메모 목록 조회"
+      tags:
+        - "Coaching"
+      parameters:
+        - name: student_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: coach_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "코치 메모 리스트"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoachMemoResponse'
     post:
       summary: "코치 정성적 메모 작성"
       tags:

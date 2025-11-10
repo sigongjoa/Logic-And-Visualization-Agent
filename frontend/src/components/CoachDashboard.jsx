@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getCoach, getStudentsByCoach, getPendingSubmissionsByCoach } from '../api';
 
 const CoachDashboard = () => {
@@ -63,12 +64,12 @@ const CoachDashboard = () => {
                                 <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] pb-3">My Students</h2>
                                 <div className="flex flex-col gap-4 mt-4">
                                     {students.map(student => (
-                                        <div key={student.student_id} className="flex items-center gap-3">
+                                        <Link to={`/coach/students/${student.student_id}`} key={student.student_id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                             <div className="flex flex-col">
                                                 <p className="font-semibold text-charcoal dark:text-white">{student.student_name}</p>
                                                 <p className="text-sm text-medium-grey">{student.student_id}</p>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>

@@ -1,95 +1,111 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getStudentReports, getStudentLatestVector, getStudentSubmissions } from '../api';
+import { getStudent, getStudentSubmissions, getCoachMemos } from '../api';
 
 const StudentDetail = () => {
-  const { studentId } = useParams();
-  const [reports, setReports] = useState([]);
-  const [latestVector, setLatestVector] = useState(null);
-  const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    const { studentId } = useParams();
+    const [student, setStudent] = useState(null);
+    const [submissions, setSubmissions] = useState([]);
+    const [memos, setMemos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [reportsData, latestVectorData, submissionsData] = await Promise.all([
-          getStudentReports(studentId),
-          getStudentLatestVector(studentId),
-          getStudentSubmissions(studentId),
-        ]);
-        setReports(reportsData);
-        setLatestVector(latestVectorData);
-        setSubmissions(submissionsData);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const studentData = await getStudent(studentId);
+                const submissionsData = await getStudentSubmissions(studentId);
+                const memosData = await getCoachMemos(studentId);
+                setStudent(studentData);
+                setSubmissions(submissionsData);
+                setMemos(memosData);
+                setError(null);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    fetchData();
-  }, [studentId]);
+        fetchData();
+    }, [studentId]);
 
-  if (loading) {
-    return <div className="student-detail-container">Loading student details...</div>;
-  }
+    if (loading) {
+        return <div>Loading student details...</div>;
+    }
 
-  if (error) {
-    return <div className="student-detail-container">Error: {error.message}</div>;
-  }
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
-  return (
-    <div className="student-detail-container">
-      <h2>Student Details: {studentId}</h2>
+    if (!student) {
+        return <div>Student not found.</div>;
+    }
 
-      <h3>Latest Vector</h3>
-      {latestVector ? (
-        <div className="vector-data">
-          <p>Vector ID: {latestVector.vector_id}</p>
-          <p>Axis 1 (Geo, Alg, Ana): {latestVector.axis1_geo}, {latestVector.axis1_alg}, {latestVector.axis1_ana}</p>
-          <p>Axis 2 (Opt, Piv, Dia): {latestVector.axis2_opt}, {latestVector.axis2_piv}, {latestVector.axis2_dia}</p>
-          <p>Axis 3 (Con, Pro, Ret): {latestVector.axis3_con}, {latestVector.axis3_pro}, {latestVector.axis3_ret}</p>
-          <p>Axis 4 (Acc, Gri): {latestVector.axis4_acc}, {latestVector.axis4_gri}</p>
-        </div>
-      ) : (
-        <p>No latest vector data available.</p>
-      )}
+    return (
+        <main className="flex-1 p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* ProfileHeader */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-4 border border-slate-200 dark:border-slate-800">
+                    <div className="flex w-full flex-col gap-4">
+                        <div className="flex gap-4">
+                            <div className="flex flex-col justify-center">
+                                <p className="text-slate-900 dark:text-slate-100 text-[22px] font-bold leading-tight tracking-[-0.015em]">{student.student_name}</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">{student.student_id}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-      <h3>Weekly Reports</h3>
-      {reports.length > 0 ? (
-        <ul className="report-list">
-          {reports.map((report) => (
-            <li key={report.report_id} className="report-list-item">
-              <h4>Report ID: {report.report_id}</h4>
-              <p>Period: {new Date(report.period_start).toLocaleDateString()} - {new Date(report.period_end).toLocaleDateString()}</p>
-              <p>Status: {report.status}</p>
-              <p>AI Summary: {report.ai_summary}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No weekly reports available.</p>
-      )}
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    {/* Left Column: Activity Timeline */}
+                    <div className="lg:col-span-2 flex flex-col gap-4">
+                        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                                <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">Student Activity Timeline</h2>
+                            </div>
+                            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+                                {submissions.map(sub => (
+                                    <li key={sub.submission_id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-grow">
+                                                <p className="font-medium text-slate-800 dark:text-slate-200">{sub.logical_path_text}</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(sub.submitted_at).toLocaleString()}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${sub.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{sub.status}</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
 
-      <h3>Submissions</h3>
-      {submissions.length > 0 ? (
-        <ul className="submission-list">
-          {submissions.map((submission) => (
-            <li key={submission.submission_id} className="submission-list-item">
-              <h4>Submission ID: {submission.submission_id}</h4>
-              <p>Status: {submission.status}</p>
-              <p>Logical Path: {submission.logical_path_text}</p>
-              <p>Concept ID: {submission.concept_id}</p>
-              <p>Manim Content URL: <a href={submission.manim_content_url} target="_blank" rel="noopener noreferrer">{submission.manim_content_url}</a></p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No submissions available.</p>
-      )}
-    </div>
-  );
+                    {/* Right Column: Coach Memos */}
+                    <div className="lg:col-span-1 flex flex-col gap-4">
+                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                                <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">Private Coach Memos</h2>
+                            </div>
+                            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+                                {memos.map(memo => (
+                                    <li key={memo.memo_id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 group">
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{new Date(memo.created_at).toLocaleDateString()}</p>
+                                            <p className="text-slate-600 dark:text-slate-400 mt-1">{memo.memo_text}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    );
 };
 
 export default StudentDetail;
