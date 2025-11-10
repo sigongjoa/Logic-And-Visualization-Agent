@@ -122,8 +122,7 @@ def test_send_report():
     assert sent_report.status == "SENT"
     db.close()
 
-@pytest.mark.asyncio
-async def test_generate_weekly_reports():
+def test_generate_weekly_reports():
     # 1. Create a student (if not already exists)
     db = TestingSessionLocal()
     student_id = "test_student_report"
@@ -199,7 +198,7 @@ async def test_generate_weekly_reports():
     db.commit()
 
     # 3. Run the report generation script
-    await generate_weekly_reports(db=db)
+    generate_weekly_reports(db=db)
 
     # 4. Retrieve the newly created report
     reports = db.query(models.WeeklyReport).filter_by(student_id=student_id).all()
