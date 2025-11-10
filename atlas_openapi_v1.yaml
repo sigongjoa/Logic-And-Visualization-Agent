@@ -70,6 +70,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmissionResult'
+  /submissions/{submission_id}:
+    get:
+      summary: "특정 제출물 조회"
+      tags:
+        - "Submissions"
+      parameters:
+        - name: submission_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "제출물 정보"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
 
   /coach-memos:
     get:

@@ -92,7 +92,7 @@ const CoachDashboard = () => {
                                             <p className="text-sm text-medium-grey">Status</p>
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning">{sub.status}</span>
                                         </div>
-                                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">Review Now</button>
+                                        <Link to={`/coach/submissions/${sub.submission_id}`} className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">Review Now</Link>
                                     </div>
                                 </div>
                             ))}

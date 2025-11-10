@@ -80,6 +80,15 @@ export const getCoachMemos = async (studentId) => {
     return response.json();
 };
 
+export const getSubmission = async (submissionId) => {
+    const response = await fetch(`${API_BASE_URL}/submissions/${submissionId}`);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Failed to fetch submission ${submissionId}`);
+    }
+    return response.json();
+};
+
 export const getStudentReports = async (studentId) => {
   const response = await fetch(`${API_BASE_URL}/coaches/students/${studentId}/reports`);
   if (!response.ok) {

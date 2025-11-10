@@ -29,3 +29,17 @@ def create_submission(
         concept_id=db_submission.concept_id,
         manim_content_url=manim_content_url,
     )
+
+@router.get("/{submission_id}", response_model=schemas.SubmissionResult)
+def get_submission_by_id(submission_id: str, db: Session = Depends(get_db)):
+    db_submission = crud.get_submission(db, submission_id=submission_id)
+    if db_submission is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    return schemas.SubmissionResult(
+        submission_id=db_submission.submission_id,
+        status=db_submission.status,
+        logical_path_text=db_submission.logical_path_text,
+        concept_id=db_submission.concept_id,
+        manim_content_url=db_submission.manim_data_path,
+    )
