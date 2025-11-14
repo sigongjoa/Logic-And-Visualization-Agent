@@ -6,6 +6,7 @@ from backend.models import Base, Student, Submission, StudentMastery, StudentVec
 from backend import crud, schemas
 import pytest
 import os
+import json # Added this line
 
 # Setup the Test Database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -60,19 +61,23 @@ def test_create_submission(db_session: Session):
     with unittest.mock.patch("backend.crud.requests.post") as mock_post, \
          unittest.mock.patch("backend.crud.fish_speech_adapter.synthesize_speech") as mock_synthesize_speech:
         
-        # Configure mock for LLM API call
+        # Configure mock for Ollama LLM API call
         mock_llm_response = unittest.mock.Mock()
         mock_llm_response.status_code = 200
         mock_llm_response.json.return_value = {
-            "concept_id": "C-HCOM-004",
-            "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
-            # manim_data_path is now retrieved from ConceptsLibrary, not LLM
-            "vector_data": {
-                "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
-                "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
-                "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
-                "axis4_acc": 50, "axis4_gri": 50,
-            }
+            "model": "llama2",
+            "created_at": "2023-11-14T12:00:00.000Z",
+            "response": json.dumps({
+                "concept_id": "C-HCOM-004",
+                "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
+                "vector_data": {
+                    "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+                    "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
+                    "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
+                    "axis4_acc": 50, "axis4_gri": 50,
+                }
+            }),
+            "done": True
         }
         mock_post.return_value = mock_llm_response
 
@@ -138,15 +143,19 @@ def test_get_submission_by_id(db_session: Session):
         mock_llm_response = unittest.mock.Mock()
         mock_llm_response.status_code = 200
         mock_llm_response.json.return_value = {
-            "concept_id": "C-HCOM-004",
-            "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
-            # manim_data_path is now retrieved from ConceptsLibrary, not LLM
-            "vector_data": {
-                "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
-                "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
-                "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
-                "axis4_acc": 50, "axis4_gri": 50,
-            }
+            "model": "llama2",
+            "created_at": "2023-11-14T12:00:00.000Z",
+            "response": json.dumps({
+                "concept_id": "C-HCOM-004",
+                "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
+                "vector_data": {
+                    "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
+                    "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
+                    "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
+                    "axis4_acc": 50, "axis4_gri": 50,
+                }
+            }),
+            "done": True
         }
         mock_post.return_value = mock_llm_response
         mock_synthesize_speech.return_value = b"dummy_audio_data" # Simulate audio bytes

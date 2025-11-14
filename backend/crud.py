@@ -14,13 +14,11 @@ from .fish_speech_adapter import FishSpeechAdapter # Import FishSpeechAdapter
 logger = logging.getLogger(__name__)
 
 # Placeholder for external LLM API configuration
-LLM_API_URL = "http://localhost:8001/llm-analysis"
-LLM_API_KEY = "your_llm_api_key"
+LLM_API_URL = os.getenv("LLM_API_URL", "http://localhost:11434/api/generate") # Ollama API endpoint
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "llama2") # Default Ollama model
 
 # Initialize FishSpeechAdapter globally
 fish_speech_adapter = FishSpeechAdapter()
-
-
 
 # Load LLM simulation configuration
 LLM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "llm_sim_config.json")
@@ -46,27 +44,76 @@ except json.JSONDecodeError:
 
 def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
     """
-    Calls an external LLM API to analyze the problem text and return
-    identified concept, logical path, and 4-axis vector data.
+    Calls a local Ollama LLM to analyze the problem text and return
+    identified concept, logical path, and 4-axis vector data in JSON format.
     """
-    headers = {"X-API-Key": LLM_API_KEY, "Content-Type": "application/json"}
-    payload = {"problem_text": problem_text}
+    headers = {"Content-Type": "application/json"} # No API key for local Ollama
+    
+    # Construct a detailed prompt for Ollama to get structured output
+    prompt = f"""
+Analyze the following math problem and provide the following information in a JSON format:
+1.  `concept_id`: The most relevant concept ID from the provided list. If no exact match, provide a close one or a general math concept ID.
+2.  `logical_path_text`: A detailed logical explanation or solution path for the problem.
+3.  `vector_data`: A dictionary representing the student's 4-axis capability model scores (0-100) based on the problem's nature. Estimate these scores.
+
+Math Problem: "{problem_text}"
+
+Available Concept IDs (from ConceptsLibrary):
+{', '.join([c.concept_id for c in db.query(models.ConceptsLibrary).all()])}
+
+Example JSON format:
+{{
+    "concept_id": "C-HCOM-004",
+    "logical_path_text": "This problem requires understanding of quadratic equations...",
+    "vector_data": {{
+        "axis1_geo": 50, "axis1_alg": 70, "axis1_ana": 60,
+        "axis2_opt": 65, "axis2_piv": 55, "axis2_dia": 60,
+        "axis3_con": 75, "axis3_pro": 70, "axis3_ret": 65,
+        "axis4_acc": 80, "axis4_gri": 70
+    }}
+}}
+"""
+
+    payload = {
+        "model": LLM_MODEL_NAME,
+        "prompt": prompt,
+        "stream": False,
+        "format": "json" # Request JSON format from Ollama
+    }
     
     try:
-        response = requests.post(LLM_API_URL, headers=headers, json=payload)
+        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=120) # Increased timeout for LLM
         response.raise_for_status() # Raise an exception for HTTP errors
-        llm_response = response.json()
 
-        # Placeholder for LLM-identified concept (if LLM provides it)
-        llm_concept_id = llm_response.get("concept_id")
+        ollama_response = response.json()
         
-        concept = None
-        if llm_concept_id:
-            concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_id == llm_concept_id).first()
+        # Ollama's /api/generate returns a stream of responses, even with stream=False,
+        # it might return a single object with 'response' field containing the actual JSON string.
+        # Or, if format="json" is fully supported, it might return the JSON directly.
+        # We need to handle both cases.
+        
+        raw_llm_output = ollama_response.get("response", ollama_response)
+        
+        # Try to parse the response as JSON
+        try:
+            llm_analysis_data = json.loads(raw_llm_output)
+        except json.JSONDecodeError:
+            logger.error(f"Ollama response was not valid JSON: {raw_llm_output}")
+            raise HTTPException(status_code=500, detail="Ollama did not return valid JSON.")
+
+        llm_concept_id = llm_analysis_data.get("concept_id")
+        logical_path_text = llm_analysis_data.get("logical_path_text")
+        vector_data = llm_analysis_data.get("vector_data")
+
+        if not llm_concept_id or not logical_path_text or not vector_data:
+            logger.error(f"Ollama response missing required fields: {llm_analysis_data}")
+            raise HTTPException(status_code=500, detail="Ollama response missing required fields.")
+
+        concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_id == llm_concept_id).first()
         
         if not concept:
+            logger.warning(f"Ollama suggested concept_id '{llm_concept_id}' not found in ConceptsLibrary. Attempting fallback.")
             # Fallback: try to find concept based on problem_text keywords if LLM didn't provide a valid one
-            # This is a V1 simplification for Meta-RAG to search ConceptsLibrary
             if "이차방정식" in problem_text:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "이차방정식").first()
             elif "피타고라스" in problem_text:
@@ -79,30 +126,17 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "삼각비").first()
             elif "경우의 수" in problem_text:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "경우의 수").first()
-            # Add more keyword-based fallbacks as needed for V1
             
             if not concept:
-                # Default concept if nothing else matches, for demonstration purposes
-                concept = db.query(models.ConceptsLibrary).first() 
+                concept = db.query(models.ConceptsLibrary).first() # Get any concept as a last resort
 
         if not concept:
             raise HTTPException(status_code=500, detail="LLM analysis failed to identify a concept and no fallback found.")
 
         concept_id = concept.concept_id
-        concept_name = concept.concept_name
-        logical_path_text = llm_response.get("logical_path_text", 
-                                             f"LLM generated logical path for '{problem_text}' related to '{concept_name}'.")
         
         # For V1, manim_data_path is directly from ConceptsLibrary
         manim_data_path = concept.manim_data_path if concept.manim_data_path else "https://www.youtube.com/watch?v=default_manim_video"
-        
-        # Simulate 4-axis vector data from LLM response
-        vector_data = llm_response.get("vector_data", {
-            "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
-            "axis2_opt": 55, "axis2_piv": 55, "axis2_dia": 55,
-            "axis3_con": 55, "axis3_pro": 55, "axis3_ret": 55,
-            "axis4_acc": 55, "axis4_gri": 55,
-        })
         
         # Ensure scores are within 0-100
         for axis in vector_data:
@@ -115,12 +149,15 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
             "vector_data": vector_data
         }
 
+    except requests.exceptions.Timeout:
+        logger.error(f"Ollama API request timed out after 120 seconds for problem: {problem_text[:50]}...")
+        raise HTTPException(status_code=504, detail="Ollama API request timed out")
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error calling external LLM API: {e}")
-        raise HTTPException(status_code=503, detail=f"Failed to connect to LLM service: {e}")
+        logger.error(f"Error calling Ollama API: {e} for problem: {problem_text[:50]}...")
+        raise HTTPException(status_code=503, detail=f"Failed to connect to Ollama service: {e}")
     except Exception as e:
-        logger.error(f"Error processing LLM response: {e}")
-        raise HTTPException(status_code=500, detail=f"Error processing LLM response: {e}")
+        logger.error(f"Error processing Ollama response: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing Ollama response: {e}")
 
 def process_submission(db: Session, student_id: str, problem_text: str):
     # 1. Call external LLM for analysis
