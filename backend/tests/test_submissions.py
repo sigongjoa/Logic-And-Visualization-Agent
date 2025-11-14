@@ -39,9 +39,9 @@ def db_session_fixture():
                 db.add(Curriculum(**curr_data))
         
         concepts = [
-            {"concept_id": "C-MALL-001", "curriculum_id": "M-ALL", "concept_name": "소인수분해"},
-            {"concept_id": "C-HCOM-004", "curriculum_id": "H-COMMON", "concept_name": "이차방정식"},
-            {"concept_id": "C-MALL-013", "curriculum_id": "M-ALL", "concept_name": "피타고라스의 정리"},
+            {"concept_id": "C-MALL-001", "curriculum_id": "M-ALL", "concept_name": "소인수분해", "manim_data_path": "https://youtube.com/watch?v=manim_video_for_prime_factorization"},
+            {"concept_id": "C-HCOM-004", "curriculum_id": "H-COMMON", "concept_name": "이차방정식", "manim_data_path": "https://youtube.com/watch?v=manim_video_for_quadratic_equation"},
+            {"concept_id": "C-MALL-013", "curriculum_id": "M-ALL", "concept_name": "피타고라스의 정리", "manim_data_path": "https://youtube.com/watch?v=manim_video_for_pythagorean_theorem"},
         ]
         for concept_data in concepts:
             if not db.query(ConceptsLibrary).filter_by(concept_id=concept_data["concept_id"]).first():
@@ -57,14 +57,16 @@ import unittest.mock
 
 def test_create_submission(db_session: Session):
     # Mock the external API calls
-    with unittest.mock.patch("backend.crud.requests.post") as mock_post:
+    with unittest.mock.patch("backend.crud.requests.post") as mock_post, \
+         unittest.mock.patch("backend.crud.fish_speech_adapter.synthesize_speech") as mock_synthesize_speech:
+        
         # Configure mock for LLM API call
         mock_llm_response = unittest.mock.Mock()
         mock_llm_response.status_code = 200
         mock_llm_response.json.return_value = {
             "concept_id": "C-HCOM-004",
             "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
-            "manim_data_path": "https://youtube.com/watch?v=manim_video_for_quadratic_equation",
+            # manim_data_path is now retrieved from ConceptsLibrary, not LLM
             "vector_data": {
                 "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
                 "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
@@ -72,23 +74,10 @@ def test_create_submission(db_session: Session):
                 "axis4_acc": 50, "axis4_gri": 50,
             }
         }
+        mock_post.return_value = mock_llm_response
 
-        # Configure mock for Manim Agent API call (this will be called by crud.call_external_llm_for_analysis)
-        mock_manim_response = unittest.mock.Mock()
-        mock_manim_response.status_code = 200
-        mock_manim_response.json.return_value = {
-            "video_url": "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
-        }
-        
-        # Set up the side_effect to return different mocks based on the URL
-        def side_effect(url, *args, **kwargs):
-            if "llm-analysis" in url:
-                return mock_llm_response
-            elif "manim-generate" in url:
-                return mock_manim_response
-            return unittest.mock.DEFAULT
-
-        mock_post.side_effect = side_effect
+        # Configure mock for fish_speech_adapter.synthesize_speech
+        mock_synthesize_speech.return_value = b"dummy_audio_data" # Simulate audio bytes
 
         # 1. Create a dummy student
         student_id = "std_test_submission"
@@ -111,7 +100,10 @@ def test_create_submission(db_session: Session):
         assert data["status"] == "COMPLETE"
         assert "LLM generated logical path" in data["logical_path_text"]
         assert data["concept_id"] == "C-HCOM-004" # Based on simulated LLM response for "이차방정식"
-        assert data["manim_content_url"] == "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
+        assert data["manim_content_url"] == "https://youtube.com/watch?v=manim_video_for_quadratic_equation" # From ConceptsLibrary
+        assert "audio_explanation_url" in data
+        assert data["audio_explanation_url"].startswith("https://audio.example.com/")
+        assert data["audio_explanation_url"].endswith(".wav")
 
         # 5. Verify the data in the database
         db = db_session
@@ -123,6 +115,9 @@ def test_create_submission(db_session: Session):
         assert db_submission.problem_text == submission_data["problem_text"]
         assert db_submission.status == "COMPLETE"
         assert db_submission.concept_id == "C-HCOM-004"
+        assert db_submission.manim_data_path == "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
+        assert db_submission.audio_explanation_url.startswith("https://audio.example.com/")
+        assert db_submission.audio_explanation_url.endswith(".wav")
 
         # Verify StudentMastery
         db_mastery = db.query(StudentMastery).filter_by(student_id=student_id, concept_id="C-HCOM-004").first()
@@ -138,13 +133,14 @@ def test_create_submission(db_session: Session):
 
 def test_get_submission_by_id(db_session: Session):
     # Mock the external API calls
-    with unittest.mock.patch("backend.crud.requests.post") as mock_post:
+    with unittest.mock.patch("backend.crud.requests.post") as mock_post, \
+         unittest.mock.patch("backend.crud.fish_speech_adapter.synthesize_speech") as mock_synthesize_speech:
         mock_llm_response = unittest.mock.Mock()
         mock_llm_response.status_code = 200
         mock_llm_response.json.return_value = {
             "concept_id": "C-HCOM-004",
             "logical_path_text": "LLM generated logical path for 'x^2 - 4x + 3 = 0의 해를 구하시오. (이차방정식 문제)' related to '이차방정식'.",
-            "manim_data_path": "https://youtube.com/watch?v=manim_video_for_quadratic_equation",
+            # manim_data_path is now retrieved from ConceptsLibrary, not LLM
             "vector_data": {
                 "axis1_geo": 50, "axis1_alg": 65, "axis1_ana": 50,
                 "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
@@ -152,18 +148,8 @@ def test_get_submission_by_id(db_session: Session):
                 "axis4_acc": 50, "axis4_gri": 50,
             }
         }
-        mock_manim_response = unittest.mock.Mock()
-        mock_manim_response.status_code = 200
-        mock_manim_response.json.return_value = {
-            "video_url": "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
-        }
-        def side_effect(url, *args, **kwargs):
-            if "llm-analysis" in url:
-                return mock_llm_response
-            elif "manim-generate" in url:
-                return mock_manim_response
-            return unittest.mock.DEFAULT
-        mock_post.side_effect = side_effect
+        mock_post.return_value = mock_llm_response
+        mock_synthesize_speech.return_value = b"dummy_audio_data" # Simulate audio bytes
 
         # Create a dummy student
         student_id = "std_test_get_submission"
@@ -188,6 +174,9 @@ def test_get_submission_by_id(db_session: Session):
         assert "LLM generated logical path" in data_get["logical_path_text"]
         assert data_get["concept_id"] == "C-HCOM-004"
         assert data_get["manim_content_url"] == "https://youtube.com/watch?v=manim_video_for_quadratic_equation"
+        assert "audio_explanation_url" in data_get
+        assert data_get["audio_explanation_url"].startswith("https://audio.example.com/")
+        assert data_get["audio_explanation_url"].endswith(".wav")
 
         # Test fetching a non-existent submission
         response_not_found = client.get("/submissions/non_existent_id")

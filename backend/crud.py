@@ -9,6 +9,7 @@ import requests
 from fastapi import HTTPException
 import json
 import os
+from .fish_speech_adapter import FishSpeechAdapter # Import FishSpeechAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,10 @@ logger = logging.getLogger(__name__)
 LLM_API_URL = "http://localhost:8001/llm-analysis"
 LLM_API_KEY = "your_llm_api_key"
 
-# Placeholder for external Manim Agent API configuration
-MANIM_AGENT_API_URL = "http://localhost:8002/manim-generate"
-MANIM_AGENT_API_KEY = "your_manim_api_key"
+# Initialize FishSpeechAdapter globally
+fish_speech_adapter = FishSpeechAdapter()
+
+
 
 # Load LLM simulation configuration
 LLM_SIM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "llm_sim_config.json")
@@ -64,25 +66,36 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
         
         if not concept:
             # Fallback: try to find concept based on problem_text keywords if LLM didn't provide a valid one
-            # This is similar to the old search_concept_by_keyword logic
-            if "이차방정식" in problem_text: # Changed from "이차함수" to "이차방정식"
+            # This is a V1 simplification for Meta-RAG to search ConceptsLibrary
+            if "이차방정식" in problem_text:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "이차방정식").first()
             elif "피타고라스" in problem_text:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "피타고라스의 정리").first()
-            # Add more keyword-based fallbacks or a default concept
+            elif "소인수분해" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "소인수분해").first()
+            elif "일차함수" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "일차함수와 그래프").first()
+            elif "삼각비" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "삼각비").first()
+            elif "경우의 수" in problem_text:
+                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "경우의 수").first()
+            # Add more keyword-based fallbacks as needed for V1
+            
             if not concept:
-                # Default concept if nothing else matches
-                concept = db.query(models.ConceptsLibrary).first() # Get any concept for now
+                # Default concept if nothing else matches, for demonstration purposes
+                concept = db.query(models.ConceptsLibrary).first() 
 
         if not concept:
             raise HTTPException(status_code=500, detail="LLM analysis failed to identify a concept and no fallback found.")
 
         concept_id = concept.concept_id
-        concept_name = concept.concept_name # Safely get concept_name
+        concept_name = concept.concept_name
         logical_path_text = llm_response.get("logical_path_text", 
                                              f"LLM generated logical path for '{problem_text}' related to '{concept_name}'.")
-        # Call external Manim Agent to get the video path
-        manim_data_path = call_external_manim_agent(concept_id, logical_path_text)
+        
+        # For V1, manim_data_path is directly from ConceptsLibrary
+        manim_data_path = concept.manim_data_path if concept.manim_data_path else "https://www.youtube.com/watch?v=default_manim_video"
+        
         # Simulate 4-axis vector data from LLM response
         vector_data = llm_response.get("vector_data", {
             "axis1_geo": 55, "axis1_alg": 55, "axis1_ana": 55,
@@ -118,8 +131,24 @@ def process_submission(db: Session, student_id: str, problem_text: str):
     manim_data_path = llm_analysis_result["manim_data_path"]
     vector_data = llm_analysis_result["vector_data"]
 
+    submission_id = f"sub_{uuid.uuid4().hex[:8]}" # Define submission_id here
+
+    audio_explanation_url = None
+    try:
+        # For V1, we synthesize speech and simulate storing it to get a URL
+        # In a real scenario, this would involve uploading to cloud storage
+        audio_data = fish_speech_adapter.synthesize_speech(logical_path_text)
+        # Simulate a URL for the generated audio
+        audio_explanation_url = f"https://audio.example.com/{uuid.uuid4().hex}.wav"
+        logger.info(f"Simulated audio generation for submission {submission_id}. Audio URL: {audio_explanation_url}")
+    except HTTPException as e:
+        logger.error(f"Failed to synthesize speech for submission {submission_id}: {e.detail}")
+        audio_explanation_url = "https://audio.example.com/error.wav" # Fallback URL
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during speech synthesis for submission {submission_id}: {e}")
+        audio_explanation_url = "https://audio.example.com/error.wav" # Fallback URL
+
     # 2. Create a new submission record
-    submission_id = f"sub_{uuid.uuid4().hex[:8]}"
     db_submission = models.Submission(
         submission_id=submission_id,
         student_id=student_id,
@@ -128,7 +157,8 @@ def process_submission(db: Session, student_id: str, problem_text: str):
         concept_id=concept_id,
         logical_path_text=logical_path_text,
         status="COMPLETE",
-        manim_data_path=manim_data_path, # Added this line
+        manim_data_path=manim_data_path,
+        audio_explanation_url=audio_explanation_url, # Store the audio URL
     )
     db.add(db_submission)
     db.flush() # Use flush to get submission_id before commit

@@ -132,7 +132,8 @@ class Submission(Base):
     status = Column(String(20), nullable=False)
     logical_path_text = Column(Text, nullable=True)
     concept_id = Column(String(50), ForeignKey("concepts_library.concept_id"), nullable=True)
-    manim_data_path = Column(String(255), nullable=True) # Added this line
+    manim_data_path = Column(String(255), nullable=True)
+    audio_explanation_url = Column(String(255), nullable=True) # New field for audio explanation URL
     student_answer = Column(Text, nullable=True)
 
 

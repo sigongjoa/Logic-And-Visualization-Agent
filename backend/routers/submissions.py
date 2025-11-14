@@ -27,7 +27,8 @@ def create_submission(
         status=db_submission.status,
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
-        manim_content_url=manim_content_url,
+        manim_content_url=db_submission.manim_data_path,
+        audio_explanation_url=db_submission.audio_explanation_url, # Include audio URL
         submitted_at=db_submission.submitted_at,
     )
 
@@ -43,5 +44,6 @@ def get_submission_by_id(submission_id: str, db: Session = Depends(get_db)):
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
         manim_content_url=db_submission.manim_data_path,
+        audio_explanation_url=db_submission.audio_explanation_url, # Include audio URL
         submitted_at=db_submission.submitted_at,
     )
