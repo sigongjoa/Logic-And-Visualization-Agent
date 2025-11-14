@@ -127,7 +127,8 @@ def test_create_submission(db_session: Session):
         # Verify StudentMastery
         db_mastery = db.query(StudentMastery).filter_by(student_id=student_id, concept_id="C-HCOM-004").first()
         assert db_mastery is not None
-        assert db_mastery.mastery_score > 0 # Initial score should be set
+        expected_mastery_score = int((50 + 50) / 2) # Based on mocked axis3_con and axis3_pro
+        assert db_mastery.mastery_score == expected_mastery_score
         assert db_mastery.status == "IN_PROGRESS"
 
         # Verify StudentVectorHistory

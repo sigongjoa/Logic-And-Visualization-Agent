@@ -51,27 +51,45 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
     
     # Construct a detailed prompt for Ollama to get structured output
     prompt = f"""
-Analyze the following math problem and provide the following information in a JSON format:
-1.  `concept_id`: The most relevant concept ID from the provided list. If no exact match, provide a close one or a general math concept ID.
-2.  `logical_path_text`: A detailed logical explanation or solution path for the problem.
-3.  `vector_data`: A dictionary representing the student's 4-axis capability model scores (0-100) based on the problem's nature. Estimate these scores.
+You are an expert AI assistant for Project ATLAS, specializing in analyzing math problems and student capabilities.
+Your task is to analyze the given math problem and provide a structured JSON output.
+
+Here's what you need to provide:
+1.  `concept_id`: Identify the SINGLE MOST RELEVANT concept ID from the provided list of `Available Concept IDs`. It is crucial to select an ID that directly relates to the core mathematical concept required to solve the problem. If the problem involves multiple concepts, choose the most foundational or primary one. If no perfect match, select the closest general concept.
+2.  `logical_path_text`: Provide a concise, step-by-step logical explanation or solution path for the problem. This should be clear enough for a student to understand the reasoning.
+3.  `vector_data`: Estimate the student's 4-axis capability model scores (0-100) based on the nature of this specific problem. Consider which axes are most challenged or demonstrated by solving this problem.
+    -   `axis1_geo`: Geometric reasoning (spatial/shape recognition)
+    -   `axis1_alg`: Algebraic manipulation (symbol/equation handling)
+    -   `axis1_ana`: Analytical reasoning (function/change inference)
+    -   `axis2_opt`: Optimization (finding efficient solutions)
+    -   `axis2_piv`: Pivoting (flexibility in switching solution approaches)
+    -   `axis2_dia`: Self-diagnosis (ability to identify own errors)
+    -   `axis3_con`: Conceptual knowledge (understanding definitions)
+    -   `axis3_pro`: Procedural knowledge (applying formulas/steps)
+    -   `axis3_ret`: Retrieval speed (speed of recalling facts/methods)
+    -   `axis4_acc`: Calculation accuracy (precision in computation)
+    -   `axis4_gri`: Difficulty tolerance (persistence with challenging problems)
 
 Math Problem: "{problem_text}"
 
 Available Concept IDs (from ConceptsLibrary):
 {', '.join([c.concept_id for c in db.query(models.ConceptsLibrary).all()])}
 
-Example JSON format:
+Your output MUST be a valid JSON object, formatted exactly as shown in the example below. Do NOT include any other text or markdown outside the JSON.
+
+Example JSON Output:
+```json
 {{
     "concept_id": "C-HCOM-004",
-    "logical_path_text": "This problem requires understanding of quadratic equations...",
+    "logical_path_text": "To solve this quadratic equation, first identify the coefficients a, b, and c. Then, apply the quadratic formula x = [-b ± sqrt(b^2 - 4ac)] / 2a. Finally, simplify the results to find the two possible values for x.",
     "vector_data": {{
-        "axis1_geo": 50, "axis1_alg": 70, "axis1_ana": 60,
-        "axis2_opt": 65, "axis2_piv": 55, "axis2_dia": 60,
-        "axis3_con": 75, "axis3_pro": 70, "axis3_ret": 65,
-        "axis4_acc": 80, "axis4_gri": 70
+        "axis1_geo": 40, "axis1_alg": 85, "axis1_ana": 60,
+        "axis2_opt": 70, "axis2_piv": 60, "axis2_dia": 75,
+        "axis3_con": 80, "axis3_pro": 85, "axis3_ret": 70,
+        "axis4_acc": 90, "axis4_gri": 80
     }}
 }}
+```
 """
 
     payload = {
@@ -211,18 +229,24 @@ def process_submission(db: Session, student_id: str, problem_text: str):
     db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
 
     # 4. Update or create StudentMastery
-    # Check if mastery record exists
+    # Calculate new mastery score based on LLM's vector_data for conceptual and procedural knowledge
+    # For V1, a simple average of axis3_con and axis3_pro can be used.
+    new_mastery_score = int((vector_data["axis3_con"] + vector_data["axis3_pro"]) / 2)
+    new_mastery_score = max(0, min(100, new_mastery_score)) # Ensure score is within 0-100
+
     db_mastery = get_student_mastery(db, student_id, concept_id)
     if db_mastery:
-        # For now, just update the last_updated time, actual score update logic will be more complex
+        # Update existing mastery record
+        db_mastery.mastery_score = new_mastery_score
+        db_mastery.status = "IN_PROGRESS" # Or "MASTERED" if score is high enough
         db_mastery.last_updated = datetime.now(UTC)
         db.add(db_mastery)
     else:
-        # Create a new mastery record with a default initial score
+        # Create a new mastery record
         mastery_schema = schemas.StudentMastery(
             student_id=student_id,
             concept_id=concept_id,
-            mastery_score=50,  # Default initial score
+            mastery_score=new_mastery_score,
             status="IN_PROGRESS",
         )
         create_student_mastery(db, mastery_schema)
