@@ -54,6 +54,7 @@ class SubmissionResult(BaseModel):
     submission_id: str
     status: str
     logical_path_text: str
+    problem_text: Optional[str] = None # Added to match frontend expectation
     concept_id: Optional[str] = None
     manim_content_url: Optional[str] = None
     audio_explanation_url: Optional[str] = None # New field for audio explanation URL
@@ -204,3 +205,16 @@ class AnkiCard(BaseModel):
 
 class AnkiCardReview(BaseModel):
     grade: int = Field(..., ge=0, le=5)
+
+class SubmissionReviewCreate(BaseModel):
+    coach_id: str
+    decision: Literal["approved", "needs_revision"]
+    coach_feedback: str
+
+class SubmissionReviewResponse(BaseModel):
+    log_id: int
+    coach_id: str
+    decision: Literal["approved", "needs_revision"]
+    coach_feedback: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)

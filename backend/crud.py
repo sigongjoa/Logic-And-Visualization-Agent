@@ -272,6 +272,16 @@ def process_submission(db: Session, student_id: str, problem_text: str):
     )
     db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
 
+    # Create an LLMLog to track the AI analysis for future review
+    db_llm_log = models.LLMLog(
+        source_submission_id=submission_id,
+        decision="pending_review",
+        model_version=LLM_MODEL_NAME,
+        coach_feedback=None, # Initially no feedback
+        reason_code=None,
+    )
+    db.add(db_llm_log)
+
     # 5. Update or create StudentMastery
     new_mastery_score = int((updated_vector_data["axis3_con"] + updated_vector_data["axis3_pro"]) / 2)
     new_mastery_score = max(0, min(100, new_mastery_score))
@@ -648,14 +658,14 @@ def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
     Calls an external Manim Agent API to generate a video based on the concept and logical path.
     Returns a URL to the generated Manim video.
     """
-    headers = {"X-API-Key": MANIM_AGENT_API_KEY, "Content-Type": "application/json"}
+    headers = {"X-API-Key": "your_manim_agent_api_key", "Content-Type": "application/json"}
     payload = {
         "concept_id": concept_id,
         "logical_path_text": logical_path_text
     }
 
     try:
-        response = requests.post(MANIM_AGENT_API_URL, headers=headers, json=payload)
+        response = requests.post("http://your_manim_agent_api_url/generate", headers=headers, json=payload)
         response.raise_for_status() # Raise an exception for HTTP errors
         manim_response = response.json()
         return manim_response.get("video_url", "https://youtube.com/watch?v=default_manim_video")
@@ -668,4 +678,35 @@ def call_external_manim_agent(concept_id: str, logical_path_text: str) -> str:
         logger.error(f"Error processing Manim Agent response: {e}")
         return "https://youtube.com/watch?v=error_manim_video"
 
+def add_coach_review_to_submission(db: Session, submission_id: str, review: schemas.SubmissionReviewCreate) -> Optional[models.LLMLog]:
+    """
+    Adds a coach's review to a submission by updating the corresponding LLMLog
+    and the submission status.
+    """
+    db_submission = get_submission(db, submission_id)
+    if not db_submission:
+        logger.error(f"Review submission failed: Submission with id {submission_id} not found.")
+        return None
+
+    db_llm_log = db.query(models.LLMLog).filter(models.LLMLog.source_submission_id == submission_id).first()
+    if not db_llm_log:
+        logger.error(f"Review submission failed: LLMLog for submission id {submission_id} not found.")
+        return None
+
+    # Update LLMLog with coach's review
+    db_llm_log.decision = review.decision
+    db_llm_log.coach_feedback = review.coach_feedback
+    db_llm_log.coach_id = review.coach_id 
+
+    # Update submission status
+    db_submission.status = "REVIEWED"
+    
+    db.add(db_llm_log)
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_llm_log)
+    
+    logger.info(f"Coach {review.coach_id} reviewed submission {submission_id}. Decision: {review.decision}")
+
+    return db_llm_log
 

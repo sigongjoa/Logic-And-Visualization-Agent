@@ -64,3 +64,4 @@ report_generation.log
 atlas.db
 test.db
 test.db
+\n# Database files\n*.db\n\n# Log files\n*.log\n\n# HTML reports\n*.html

@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from backend.main import app, get_db
 from backend.models import Base, Student, Submission, StudentMastery, StudentVectorHistory, ConceptsLibrary, Curriculum
-from backend import crud, schemas
+from backend import crud, schemas, models
 import pytest
 import os
 import json # Added this line
@@ -143,3 +143,47 @@ def test_get_submission_by_id(db_session: Session):
     response_not_found = client.get("/submissions/non_existent_id")
     assert response_not_found.status_code == 404
     assert response_not_found.json()["detail"] == "Submission not found"
+
+def test_review_submission(db_session: Session):
+    # 1. Create a student and a coach
+    student_id = "std_review_test"
+    coach_id = "coach_review_test"
+    crud.create_student(db_session, schemas.StudentCreate(student_id=student_id, student_name="Review Test Student"))
+    crud.create_coach(db_session, schemas.CoachCreate(coach_id=coach_id, coach_name="Review Test Coach"))
+
+    # 2. Create a submission
+    submission_data = {
+        "student_id": student_id,
+        "problem_text": "This is a problem that needs reviewing.",
+    }
+    response_post = client.post("/submissions", json=submission_data)
+    assert response_post.status_code == 201
+    submission_id = response_post.json()["submission_id"]
+
+    # 3. Verify that an LLMLog was created and is pending review
+    db_llm_log_before = db_session.query(models.LLMLog).filter(models.LLMLog.source_submission_id == submission_id).first()
+    assert db_llm_log_before is not None
+    assert db_llm_log_before.decision == "pending_review"
+
+    # 4. Submit a review
+    review_data = {
+        "coach_id": coach_id,
+        "decision": "approved",
+        "coach_feedback": "Good work, but consider the edge cases."
+    }
+    response_review = client.post(f"/submissions/{submission_id}/review", json=review_data)
+
+    # 5. Assert the review response
+    assert response_review.status_code == 200
+    review_response_data = response_review.json()
+    assert review_response_data["decision"] == "approved"
+    assert review_response_data["coach_feedback"] == "Good work, but consider the edge cases."
+    assert review_response_data["log_id"] == db_llm_log_before.log_id # Check if it's the same log entry
+
+    # 6. Verify the changes in the database
+    db_session.refresh(db_llm_log_before)
+    assert db_llm_log_before.decision == "approved"
+    assert db_llm_log_before.coach_feedback == "Good work, but consider the edge cases."
+
+    db_submission = db_session.query(models.Submission).filter(models.Submission.submission_id == submission_id).first()
+    assert db_submission.status == "REVIEWED"    

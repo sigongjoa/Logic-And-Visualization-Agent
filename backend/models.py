@@ -150,9 +150,10 @@ class LLMLog(Base):
     __tablename__ = "llm_logs"
     log_id = Column(Integer, primary_key=True, autoincrement=True)
     source_submission_id = Column(String(50), ForeignKey("submissions.submission_id"), nullable=True)
+    coach_id = Column(String(50), ForeignKey("coaches.coach_id"), nullable=True)
     decision = Column(String(50), nullable=False)
     model_version = Column(String(50))
-    coach_feedback = Column(String(10), nullable=True)
+    coach_feedback = Column(Text, nullable=True)
     reason_code = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

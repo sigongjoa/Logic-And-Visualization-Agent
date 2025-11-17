@@ -29,6 +29,7 @@ logging.basicConfig(level=logging.DEBUG)
 origins = [
     "http://localhost",
     "http://localhost:5173", # Frontend development server
+    "http://localhost:3000", # Added for the current test environment
 ]
 
 app.add_middleware(
