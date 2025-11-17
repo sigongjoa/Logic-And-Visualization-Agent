@@ -67,6 +67,8 @@ class Assessment(Base):
     assessment_type = Column(String(20), nullable=False)
     source_ref_id = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
+    ai_model_version = Column(String(50), nullable=True)
+    ai_reason_code = Column(String(50), nullable=True)
 
 
 class StudentVectorHistory(Base):
@@ -134,6 +136,7 @@ class Submission(Base):
     concept_id = Column(String(50), ForeignKey("concepts_library.concept_id"), nullable=True)
     manim_data_path = Column(String(255), nullable=True)
     audio_explanation_url = Column(String(255), nullable=True) # New field for audio explanation URL
+    manim_visualization_json = Column(Text, nullable=True)
     student_answer = Column(Text, nullable=True)
 
 

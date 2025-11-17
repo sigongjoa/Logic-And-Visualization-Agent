@@ -2,17 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { NavigationProps } from '../types';
 import { getSubmission, reviewSubmission, Submission } from '../services/api';
 
-const AssignmentReviewPage: React.FC<NavigationProps> = ({ navigateTo }) => {
+interface AssignmentReviewPageProps extends NavigationProps {
+    submissionId: string | null;
+}
+
+const AssignmentReviewPage: React.FC<AssignmentReviewPageProps> = ({ navigateTo, submissionId }) => {
     const [submission, setSubmission] = useState<Submission | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [feedback, setFeedback] = useState('');
     const [decision, setDecision] = useState<'approved' | 'needs_revision'>('approved');
 
-    // Hardcoded for now, this would typically come from the URL (e.g., react-router)
-    const submissionId = "sub_d680c06d"; // Replace with a real ID from your test runs if needed
-
     useEffect(() => {
+        if (!submissionId) {
+            setError('No submission ID provided.');
+            setIsLoading(false);
+            return;
+        }
+
         const fetchSubmission = async () => {
             try {
                 setIsLoading(true);
@@ -32,7 +39,7 @@ const AssignmentReviewPage: React.FC<NavigationProps> = ({ navigateTo }) => {
 
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!submission) return;
+        if (!submission || !submissionId) return;
 
         setIsLoading(true);
         try {

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from backend import schemas, crud, models
 from backend.main import get_db
 import uuid
+import json # Import json
 
 router = APIRouter(
     prefix="/submissions",
@@ -17,18 +18,26 @@ def create_submission(
         db=db,
         student_id=submission.student_id,
         problem_text=submission.problem_text,
+        manim_visualization_json=submission.manim_visualization_json,
     )
 
     if not db_submission:
         raise HTTPException(status_code=400, detail="Submission could not be created.")
 
+    manim_json_output = None
+    if db_submission.manim_visualization_json:
+        manim_json_output = json.loads(db_submission.manim_visualization_json)
+
     return schemas.SubmissionResult(
         submission_id=db_submission.submission_id,
+        student_id=db_submission.student_id,
+        problem_text=db_submission.problem_text,
         status=db_submission.status,
         logical_path_text=db_submission.logical_path_text,
         concept_id=db_submission.concept_id,
         manim_content_url=db_submission.manim_data_path,
         audio_explanation_url=db_submission.audio_explanation_url, # Include audio URL
+        manim_visualization_json=manim_json_output,
         submitted_at=db_submission.submitted_at,
     )
 
@@ -38,14 +47,20 @@ def get_submission_by_id(submission_id: str, db: Session = Depends(get_db)):
     if db_submission is None:
         raise HTTPException(status_code=404, detail="Submission not found")
     
+    manim_json_output = None
+    if db_submission.manim_visualization_json:
+        manim_json_output = json.loads(db_submission.manim_visualization_json)
+
     return schemas.SubmissionResult(
         submission_id=db_submission.submission_id,
+        student_id=db_submission.student_id,
+        problem_text=db_submission.problem_text,
         status=db_submission.status,
         logical_path_text=db_submission.logical_path_text,
-        problem_text=db_submission.problem_text,
         concept_id=db_submission.concept_id,
         manim_content_url=db_submission.manim_data_path,
         audio_explanation_url=db_submission.audio_explanation_url, # Include audio URL
+        manim_visualization_json=manim_json_output,
         submitted_at=db_submission.submitted_at,
     )
 

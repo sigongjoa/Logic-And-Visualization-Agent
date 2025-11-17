@@ -16,22 +16,29 @@ import Sidebar from './components/Sidebar';
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Login);
   const [userType, setUserType] = useState<UserType | null>(null);
+  const [currentStudentId, setCurrentStudentId] = useState<string | null>(null); // New state for student ID
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
 
-  const navigateTo = useCallback((page: Page) => {
+  const navigateTo = useCallback((page: Page, submissionId: string | null = null) => {
     setCurrentPage(page);
+    setSelectedSubmissionId(submissionId);
   }, []);
 
   const handleLogin = (type: UserType) => {
     setUserType(type);
     if (type === 'coach') {
+      setCurrentStudentId(null); // Coaches don't have a specific student ID for themselves
       navigateTo(Page.CoachDashboard);
     } else {
+      setCurrentStudentId("std_test_report"); // Hardcode for testing purposes
       navigateTo(Page.StudentDashboard);
     }
   };
 
   const handleLogout = () => {
     setUserType(null);
+    setCurrentStudentId(null); // Clear student ID on logout
+    setSelectedSubmissionId(null); // Clear selected submission on logout
     navigateTo(Page.Login);
   };
   
@@ -42,9 +49,9 @@ const App: React.FC = () => {
       case Page.CoachDashboard:
         return <CoachDashboard navigateTo={navigateTo} userType={userType} />;
       case Page.StudentDashboard:
-        return <StudentDashboard navigateTo={navigateTo} userType={userType} />;
+        return <StudentDashboard navigateTo={navigateTo} userType={userType} currentStudentId={currentStudentId} />;
       case Page.AssignmentReview:
-        return <AssignmentReviewPage navigateTo={navigateTo} userType={userType} />;
+        return <AssignmentReviewPage navigateTo={navigateTo} userType={userType} submissionId={selectedSubmissionId} />;
       case Page.AssignmentSubmission:
         return <AssignmentSubmissionPage navigateTo={navigateTo} userType={userType} />;
       case Page.Curriculum:

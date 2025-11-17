@@ -206,7 +206,7 @@ Example JSON Output:
         logger.error(f"An unexpected error occurred in LLM analysis. Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing Ollama response: {e}")
 
-def process_submission(db: Session, student_id: str, problem_text: str):
+def process_submission(db: Session, student_id: str, problem_text: str, manim_visualization_json: Optional[dict] = None):
     # 1. Call external LLM for analysis
     llm_analysis_result = call_external_llm_for_analysis(db, problem_text)
 
@@ -237,6 +237,7 @@ def process_submission(db: Session, student_id: str, problem_text: str):
         status="COMPLETE",
         manim_data_path=manim_data_path,
         audio_explanation_url=audio_explanation_url,
+        manim_visualization_json=json.dumps(manim_visualization_json) if manim_visualization_json else None,
     )
     db.add(db_submission)
     db.flush()
@@ -413,7 +414,12 @@ def create_parent(db: Session, parent: schemas.ParentCreate):
     return db_parent
 
 # Assessment and Vector History
-def create_assessment_and_vector(db: Session, assessment: schemas.AssessmentCreate):
+def create_assessment_and_vector(
+    db: Session,
+    assessment: schemas.AssessmentCreate,
+    ai_model_version: Optional[str] = None,
+    ai_reason_code: Optional[str] = None,
+):
     assessment_id = f"asmt_{uuid.uuid4().hex[:8]}"
     db_assessment = models.Assessment(
         assessment_id=assessment_id,
@@ -421,6 +427,8 @@ def create_assessment_and_vector(db: Session, assessment: schemas.AssessmentCrea
         assessment_type=assessment.assessment_type,
         source_ref_id=assessment.source_ref_id,
         notes=assessment.notes,
+        ai_model_version=ai_model_version,
+        ai_reason_code=ai_reason_code,
     )
     db.add(db_assessment)
     db.flush() # Use flush to get assessment_id before commit

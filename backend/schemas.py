@@ -36,6 +36,8 @@ class AssessmentCreate(BaseModel):
     assessment_type: str
     source_ref_id: Optional[str] = None
     notes: Optional[str] = None
+    ai_model_version: Optional[str] = None
+    ai_reason_code: Optional[str] = None
     vector_data: dict = Field(
         ...,
         example={
@@ -49,16 +51,20 @@ class AssessmentCreate(BaseModel):
 class SubmissionCreate(BaseModel):
     student_id: str
     problem_text: str
+    manim_visualization_json: Optional[dict] = None
 
 class SubmissionResult(BaseModel):
     submission_id: str
+    student_id: str
+    problem_text: str
     status: str
     logical_path_text: str
-    problem_text: Optional[str] = None # Added to match frontend expectation
     concept_id: Optional[str] = None
     manim_content_url: Optional[str] = None
     audio_explanation_url: Optional[str] = None # New field for audio explanation URL
+    manim_visualization_json: Optional[dict] = None
     submitted_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class CoachMemoCreate(BaseModel):
     coach_id: str

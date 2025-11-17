@@ -35,11 +35,21 @@ def read_coach_submissions(coach_id: str, status: Optional[str] = None, db: Sess
     for sub in submissions:
         concept = crud.get_concept(db, sub.concept_id)
         manim_content_url = concept.manim_data_path if concept else "https://youtube.com/watch?v=default_video"
+        
+        manim_json_output = None
+        if sub.manim_visualization_json:
+            manim_json_output = json.loads(sub.manim_visualization_json)
+
         results.append(schemas.SubmissionResult(
             submission_id=sub.submission_id,
+            student_id=sub.student_id,
+            problem_text=sub.problem_text,
             status=sub.status,
             logical_path_text=sub.logical_path_text,
             concept_id=sub.concept_id,
-            manim_content_url=manim_content_url
+            manim_content_url=manim_content_url,
+            audio_explanation_url=sub.audio_explanation_url,
+            manim_visualization_json=manim_json_output,
+            submitted_at=sub.submitted_at,
         ))
     return results

@@ -53,6 +53,9 @@ Thumbs.db
 # Logs
 *.log
 
+# HTML reports
+*.html
+
 # Terraform
 .terraform/
 *.tfplan
@@ -62,6 +65,6 @@ Thumbs.db
 # Project specific
 report_generation.log
 atlas.db
-test.db
-test.db
-\n# Database files\n*.db\n\n# Log files\n*.log\n\n# HTML reports\n*.html
+frontend/assignment_review_page_error.png
+frontend/assignment_review_page_success.png
+frontend/test-results/

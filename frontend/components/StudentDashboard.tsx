@@ -2,6 +2,10 @@
 import React from 'react';
 import { NavigationProps, Page } from '../types';
 
+interface StudentDashboardProps extends NavigationProps {
+    currentStudentId: string | null;
+}
+
 const ProgressRing = ({ radius, stroke, progress }: { radius: number, stroke: number, progress: number }) => {
     const normalizedRadius = radius - stroke * 2;
     const circumference = normalizedRadius * 2 * Math.PI;
@@ -34,7 +38,7 @@ const ProgressRing = ({ radius, stroke, progress }: { radius: number, stroke: nu
     );
 };
 
-const StudentDashboard: React.FC<NavigationProps> = ({ navigateTo }) => {
+const StudentDashboard: React.FC<StudentDashboardProps> = ({ navigateTo, currentStudentId }) => {
   return (
     <div className="font-display bg-[#F4F7F9] dark:bg-[#101622] text-[#333333] dark:text-[#E0E0E0] min-h-screen">
         <main className="flex-1 px-6 sm:px-10 lg:px-20 py-8">
@@ -75,7 +79,7 @@ const StudentDashboard: React.FC<NavigationProps> = ({ navigateTo }) => {
                         <div className="bg-white dark:bg-[#101622]/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-bold tracking-[-0.015em]">Upcoming Assignments</h2>
-                                <button onClick={() => navigateTo(Page.SubmissionHistory)} className="text-sm font-medium text-[#4A90E2] hover:underline">View All</button>
+                                <button onClick={() => navigateTo(Page.SubmissionHistory, currentStudentId)} className="text-sm font-medium text-[#4A90E2] hover:underline">View All</button>
                             </div>
                             <div className="space-y-4">
                                 <div onClick={() => navigateTo(Page.AssignmentSubmission)} className="flex items-start gap-4 p-4 rounded-lg bg-[#F4F7F9] dark:bg-gray-800 hover:shadow-md transition-shadow cursor-pointer">

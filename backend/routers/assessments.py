@@ -17,5 +17,7 @@ def create_assessment(
     db_assessment, db_vector_history = crud.create_assessment_and_vector(
         db=db,
         assessment=assessment,
+        ai_model_version=assessment.ai_model_version,
+        ai_reason_code=assessment.ai_reason_code,
     )
     return db_vector_history

@@ -202,6 +202,27 @@ def populate_knowledge_graph(db):
     finally:
         db.close()
 
+    # --- V2 Knowledge Graph Expansion Placeholder ---
+    # In V2, this section would contain logic to:
+    # 1. Add new curriculums and concepts for advanced topics.
+    # 2. Define more complex concept relations (e.g., cross-curriculum prerequisites).
+    # 3. Potentially integrate with external data sources for automated graph enrichment.
+    # Example:
+    # new_concepts = [
+    #     {"concept_id": "C_ADV_CALC_001", "curriculum_id": "CALC", "concept_name": "다변수 미적분", "description": "다변수 함수의 미분과 적분"},
+    # ]
+    # for data in new_concepts:
+    #     db.add(ConceptsLibrary(**data))
+    # db.commit()
+    #
+    # new_relations = [
+    #     {"from_concept_id": "C_ADV_CALC_001", "to_concept_id": "C_초월함수의미분", "relation_type": "REQUIRES"},
+    # ]
+    # for data in new_relations:
+    #     db.add(ConceptRelation(**data))
+    # db.commit()
+    # ------------------------------------------------
+
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine) # Ensure tables are created
     db_session = next(get_db())
