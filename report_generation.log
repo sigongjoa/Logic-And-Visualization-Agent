@@ -3516,3 +3516,279 @@ Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-1
 전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
 
 Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x75f2172cd0f0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x75f2172cd0f0>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x75f2172bdfd0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x75f2172bdb70>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7228601ba890>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7228601ba890>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7228601cfcb0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7228601cfa10>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7aa5ebfe32f0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7aa5ebfe32f0>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7aa5ebec12b0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7aa5ebec0e50>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x7da5d44932f0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7da5d44932f0>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x7da5d43752b0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x7da5d4374e50>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x761fd1e8bd40>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x761fd1e8bd40>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x761fd1d74670>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x761fd1d744b0>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student
+Found 4 students.
+Processing student: Coach Student 1
+Latest vector: <backend.models.StudentVectorHistory object at 0x745f997c33e0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x745f997c33e0>
+Generated summary: 주간 학습 리포트 - Coach Student 1 (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+난이도 내성(axis4_gri)은 20점으로, 지난 주 대비 0점 유지되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Problem 2
+
+--- 이번 주 개념 숙련도 변화가 없습니다. ---
+
+이번 주에는 큰 변화가 없었지만, 꾸준히 학습에 참여하고 있습니다. 다음 주에는 더 큰 발전을 기대합니다.
+
+Generated DRAFT report for Coach Student 1
+Processing student: Coach Student 2
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Coach Student 2
+Processing student: Test Send User
+Latest vector: None
+Weekly start vector: None
+Not enough data to generate a report for Test Send User
+Processing student: Test Report Student
+Latest vector: <backend.models.StudentVectorHistory object at 0x745f998a12b0>
+Weekly start vector: <backend.models.StudentVectorHistory object at 0x745f998a0e50>
+Generated summary: 주간 학습 리포트 - Test Report Student (기간: 2025-11-10 ~ 2025-11-17)
+
+--- 4축 모델 변화 ---
+이번 주 연산 정확성(axis4_acc)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+난이도 내성(axis4_gri)은 60점으로, 지난 주 대비 10점 향상되었습니다.
+
+--- 이번 주 학습 활동 ---
+총 2개의 문제를 제출했습니다. 그 중 1개를 완료했습니다.
+미완료 문제: Report Problem 2
+
+--- 개념 숙련도 변화 ---
+숙련도가 향상된 개념: C_MATH_TEST
+
+전반적으로 연산 정확성과 난이도 내성 모두 긍정적인 변화를 보였습니다. 꾸준한 학습 태도가 돋보입니다.
+
+Generated DRAFT report for Test Report Student

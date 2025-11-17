@@ -9,6 +9,13 @@ router = APIRouter(
     tags=["Students"],
 )
 
+@router.post("/", response_model=schemas.Student, status_code=201)
+def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
+    db_student = crud.get_student(db, student_id=student.student_id)
+    if db_student:
+        raise HTTPException(status_code=400, detail="Student ID already registered")
+    return crud.create_student(db=db, student=student)
+
 @router.get("/", response_model=List[schemas.Student])
 def get_all_students(db: Session = Depends(get_db)):
     students = db.query(models.Student).all()

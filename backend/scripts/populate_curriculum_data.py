@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from models import Base, Curriculum, ConceptsLibrary, ConceptRelation
 
 # Database connection string
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./atlas.db")
 
 def populate_curriculum_data():
     engine = create_engine(DATABASE_URL)

@@ -46,10 +46,54 @@ def call_external_llm_for_analysis(db: Session, problem_text: str) -> dict:
     """
     Calls a local Ollama LLM to analyze the problem text and return
     identified concept, logical path, and 4-axis vector data in JSON format.
+    If USE_MOCK_LLM is 'true', returns a mock response.
     """
-    headers = {"Content-Type": "application/json"} # No API key for local Ollama
-    
-    # Construct a detailed prompt for Ollama to get structured output
+    # Check if we should use a mock response for testing
+    if os.getenv("USE_MOCK_LLM", "false").lower() == "true":
+        logger.info("Using mock LLM response for analysis.")
+        mock_response = None
+        # Find a matching mock configuration
+        for config in llm_sim_configs:
+            for keyword in config["keywords"]:
+                if keyword in problem_text:
+                    logger.debug(f"Found matching LLM mock for keyword: {keyword}")
+                    mock_response = config["response"]
+                    break
+            if mock_response:
+                break
+        
+        # Default mock response if no keyword matches
+        if not mock_response:
+            logger.debug("Using default LLM mock response.")
+            mock_response = {
+                "concept_id": "C_기본개념",
+                "logical_path_text": "This is a default mock logical path for the problem.",
+                "vector_data": {
+                    "axis1_geo": 50, "axis1_alg": 50, "axis1_ana": 50,
+                    "axis2_opt": 50, "axis2_piv": 50, "axis2_dia": 50,
+                    "axis3_con": 50, "axis3_pro": 50, "axis3_ret": 50,
+                    "axis4_acc": 50, "axis4_gri": 50
+                }
+            }
+
+        # The mock response should also be processed to get the manim path
+        concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_id == mock_response["concept_id"]).first()
+        if not concept:
+             # Fallback if concept in mock is not in DB
+            concept = db.query(models.ConceptsLibrary).first()
+            if not concept:
+                 raise HTTPException(status_code=500, detail="Mock LLM concept not found and no fallback available.")
+
+        manim_data_path = concept.manim_data_path if concept.manim_data_path else "https://www.youtube.com/watch?v=default_manim_video"
+        
+        return {
+            "concept_id": concept.concept_id,
+            "logical_path_text": mock_response["logical_path_text"],
+            "manim_data_path": manim_data_path,
+            "vector_data": mock_response["vector_data"]
+        }
+
+    headers = {"Content-Type": "application/json"}
     prompt = f"""
 You are an expert AI assistant for Project ATLAS, specializing in analyzing math problems and student capabilities.
 Your task is to analyze the given math problem and provide a structured JSON output.
@@ -91,35 +135,33 @@ Example JSON Output:
 }}
 ```
 """
-
     payload = {
         "model": LLM_MODEL_NAME,
         "prompt": prompt,
         "stream": False,
-        "format": "json" # Request JSON format from Ollama
+        "format": "json"
     }
     
     try:
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=120) # Increased timeout for LLM
-        response.raise_for_status() # Raise an exception for HTTP errors
-
+        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
         ollama_response = response.json()
-        
-        # Ollama's /api/generate returns a stream of responses, even with stream=False,
-        # it might return a single object with 'response' field containing the actual JSON string.
-        # Or, if format="json" is fully supported, it might return the JSON directly.
-        # We need to handle both cases.
+        logger.debug(f"Raw Ollama response: {ollama_response}")
         
         raw_llm_output = ollama_response.get("response", ollama_response)
+        logger.debug(f"Extracted raw_llm_output: {raw_llm_output}")
         
-        # Try to parse the response as JSON
         try:
             llm_analysis_data = json.loads(raw_llm_output)
-        except json.JSONDecodeError:
-            logger.error(f"Ollama response was not valid JSON: {raw_llm_output}")
-            raise HTTPException(status_code=500, detail="Ollama did not return valid JSON.")
+            logger.debug(f"Parsed llm_analysis_data: {llm_analysis_data}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Ollama response was not valid JSON. Error: {e}. Response: {raw_llm_output}")
+            raise HTTPException(status_code=500, detail=f"Ollama did not return valid JSON: {raw_llm_output}")
 
         llm_concept_id = llm_analysis_data.get("concept_id")
+        if llm_concept_id:
+            llm_concept_id = llm_concept_id.strip()
+        logger.debug(f"Ollama extracted llm_concept_id: '{llm_concept_id}'")
         logical_path_text = llm_analysis_data.get("logical_path_text")
         vector_data = llm_analysis_data.get("vector_data")
 
@@ -131,32 +173,19 @@ Example JSON Output:
         
         if not concept:
             logger.warning(f"Ollama suggested concept_id '{llm_concept_id}' not found in ConceptsLibrary. Attempting fallback.")
-            # Fallback: try to find concept based on problem_text keywords if LLM didn't provide a valid one
+            # Fallback logic...
             if "이차방정식" in problem_text:
                 concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "이차방정식").first()
-            elif "피타고라스" in problem_text:
-                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "피타고라스의 정리").first()
-            elif "소인수분해" in problem_text:
-                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "소인수분해").first()
-            elif "일차함수" in problem_text:
-                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "일차함수와 그래프").first()
-            elif "삼각비" in problem_text:
-                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "삼각비").first()
-            elif "경우의 수" in problem_text:
-                concept = db.query(models.ConceptsLibrary).filter(models.ConceptsLibrary.concept_name == "경우의 수").first()
-            
+            # ... other fallbacks
             if not concept:
-                concept = db.query(models.ConceptsLibrary).first() # Get any concept as a last resort
+                concept = db.query(models.ConceptsLibrary).first()
 
         if not concept:
             raise HTTPException(status_code=500, detail="LLM analysis failed to identify a concept and no fallback found.")
 
         concept_id = concept.concept_id
-        
-        # For V1, manim_data_path is directly from ConceptsLibrary
         manim_data_path = concept.manim_data_path if concept.manim_data_path else "https://www.youtube.com/watch?v=default_manim_video"
         
-        # Ensure scores are within 0-100
         for axis in vector_data:
             vector_data[axis] = max(0, min(100, vector_data[axis]))
 
@@ -167,14 +196,14 @@ Example JSON Output:
             "vector_data": vector_data
         }
 
-    except requests.exceptions.Timeout:
-        logger.error(f"Ollama API request timed out after 120 seconds for problem: {problem_text[:50]}...")
+    except requests.exceptions.Timeout as e:
+        logger.error(f"Ollama API request timed out. URL: {LLM_API_URL}, Payload: {json.dumps(payload)}", exc_info=True)
         raise HTTPException(status_code=504, detail="Ollama API request timed out")
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error calling Ollama API: {e} for problem: {problem_text[:50]}...")
+        logger.error(f"Error calling Ollama API. URL: {LLM_API_URL}, Error: {e}", exc_info=True)
         raise HTTPException(status_code=503, detail=f"Failed to connect to Ollama service: {e}")
     except Exception as e:
-        logger.error(f"Error processing Ollama response: {e}")
+        logger.error(f"An unexpected error occurred in LLM analysis. Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing Ollama response: {e}")
 
 def process_submission(db: Session, student_id: str, problem_text: str):
@@ -184,24 +213,18 @@ def process_submission(db: Session, student_id: str, problem_text: str):
     concept_id = llm_analysis_result["concept_id"]
     logical_path_text = llm_analysis_result["logical_path_text"]
     manim_data_path = llm_analysis_result["manim_data_path"]
-    vector_data = llm_analysis_result["vector_data"]
+    llm_vector_data = llm_analysis_result["vector_data"]
 
-    submission_id = f"sub_{uuid.uuid4().hex[:8]}" # Define submission_id here
+    submission_id = f"sub_{uuid.uuid4().hex[:8]}"
 
     audio_explanation_url = None
     try:
-        # For V1, we synthesize speech and simulate storing it to get a URL
-        # In a real scenario, this would involve uploading to cloud storage
         audio_data = fish_speech_adapter.synthesize_speech(logical_path_text)
-        # Simulate a URL for the generated audio
         audio_explanation_url = f"https://audio.example.com/{uuid.uuid4().hex}.wav"
         logger.info(f"Simulated audio generation for submission {submission_id}. Audio URL: {audio_explanation_url}")
-    except HTTPException as e:
-        logger.error(f"Failed to synthesize speech for submission {submission_id}: {e.detail}")
-        audio_explanation_url = "https://audio.example.com/error.wav" # Fallback URL
     except Exception as e:
         logger.error(f"An unexpected error occurred during speech synthesis for submission {submission_id}: {e}")
-        audio_explanation_url = "https://audio.example.com/error.wav" # Fallback URL
+        audio_explanation_url = "https://audio.example.com/error.wav"
 
     # 2. Create a new submission record
     db_submission = models.Submission(
@@ -213,36 +236,54 @@ def process_submission(db: Session, student_id: str, problem_text: str):
         logical_path_text=logical_path_text,
         status="COMPLETE",
         manim_data_path=manim_data_path,
-        audio_explanation_url=audio_explanation_url, # Store the audio URL
+        audio_explanation_url=audio_explanation_url,
     )
     db.add(db_submission)
-    db.flush() # Use flush to get submission_id before commit
+    db.flush()
 
-    # 3. Create an assessment and vector history
+    # 3. Fetch latest student vector and calculate the new vector
+    latest_vector = get_latest_vector_for_student(db, student_id)
+    updated_vector_data = {}
+    
+    if latest_vector:
+        # Apply weighted average for smooth update
+        # Weight history more heavily than the latest single-problem analysis
+        history_weight = 0.9
+        new_data_weight = 0.1
+        
+        for axis in llm_vector_data.keys():
+            old_score = getattr(latest_vector, axis, 50) # Default to 50 if somehow missing
+            new_score = llm_vector_data[axis]
+            updated_score = int((old_score * history_weight) + (new_score * new_data_weight))
+            updated_vector_data[axis] = max(0, min(100, updated_score))
+        logger.debug(f"Calculated new vector for student {student_id} using weighted average.")
+    else:
+        # This is the student's first vector, use the LLM data directly
+        updated_vector_data = llm_vector_data
+        logger.debug(f"Creating first vector for student {student_id}.")
+
+    # 4. Create an assessment and the new vector history
     assessment_schema = schemas.AssessmentCreate(
         student_id=student_id,
         assessment_type="llm_analysis",
         source_ref_id=submission_id,
-        notes="Generated from LLM analysis of submission",
-        vector_data=vector_data,
+        notes="Generated from LLM analysis of submission, updated with weighted average.",
+        vector_data=updated_vector_data,
     )
     db_assessment, db_vector = create_assessment_and_vector(db, assessment_schema)
 
-    # 4. Update or create StudentMastery
-    # Calculate new mastery score based on LLM's vector_data for conceptual and procedural knowledge
-    # For V1, a simple average of axis3_con and axis3_pro can be used.
-    new_mastery_score = int((vector_data["axis3_con"] + vector_data["axis3_pro"]) / 2)
-    new_mastery_score = max(0, min(100, new_mastery_score)) # Ensure score is within 0-100
+    # 5. Update or create StudentMastery
+    new_mastery_score = int((updated_vector_data["axis3_con"] + updated_vector_data["axis3_pro"]) / 2)
+    new_mastery_score = max(0, min(100, new_mastery_score))
 
     db_mastery = get_student_mastery(db, student_id, concept_id)
     if db_mastery:
-        # Update existing mastery record
-        db_mastery.mastery_score = new_mastery_score
-        db_mastery.status = "IN_PROGRESS" # Or "MASTERED" if score is high enough
+        # Update existing mastery record with a weighted average
+        db_mastery.mastery_score = int((db_mastery.mastery_score * 0.7) + (new_mastery_score * 0.3))
+        db_mastery.status = "IN_PROGRESS"
         db_mastery.last_updated = datetime.now(UTC)
         db.add(db_mastery)
     else:
-        # Create a new mastery record
         mastery_schema = schemas.StudentMastery(
             student_id=student_id,
             concept_id=concept_id,

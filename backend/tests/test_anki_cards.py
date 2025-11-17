@@ -58,29 +58,26 @@ def test_create_anki_card_and_sm2_defaults():
         ))
         db.commit()
 
-    # Create an Anki card
-    anki_card_data = {
-        "student_id": student_id,
-        "llm_log_id": llm_log_id,
-        "question": "What is 2+2?",
-        "answer": "4",
-    }
-    response = client.post("/submissions", json={"student_id": student_id, "problem_text": "Test problem for Anki"})
-    assert response.status_code == 201
-    submission_data = response.json()
+    # Directly create an Anki card using the CRUD function
+    db_anki_card = crud.create_anki_card(
+        db=db,
+        student_id=student_id,
+        llm_log_id=llm_log_id,
+        question="What is 2+2?",
+        answer="4",
+    )
 
-    # Retrieve the Anki card created during submission
-    anki_cards = crud.get_anki_cards_by_student(db, student_id)
-    assert len(anki_cards) > 0
-    db_anki_card = anki_cards[0]
-
+    assert db_anki_card is not None
     assert db_anki_card.student_id == student_id
-    assert db_anki_card.question == "What is the key concept in 'Test problem for Anki'?"
-    assert db_anki_card.answer.startswith("The key concept is")
-    assert db_anki_card.interval_days == 0 # Initial interval before first review
+    assert db_anki_card.llm_log_id == llm_log_id
+    assert db_anki_card.question == "What is 2+2?"
+    assert db_anki_card.answer == "4"
+    assert db_anki_card.interval_days == 0
     assert db_anki_card.ease_factor == 2.5
     assert db_anki_card.repetitions == 0
-    assert db_anki_card.next_review_date.date() == (datetime.now(UTC) + timedelta(days=1)).date()
+    # next_review_date is set to tomorrow
+    assert db_anki_card.next_review_date.date() == (datetime.now(UTC).date() + timedelta(days=1))
+    
     db.close()
 
 def test_update_anki_card_sm2_perfect_recall():

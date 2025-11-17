@@ -65,7 +65,7 @@ class CoachMemoCreate(BaseModel):
     memo_text: str
 
 class CoachMemoResponse(CoachMemoCreate):
-    memo_id: str
+    memo_id: int
     created_at: datetime
 
     class Config:

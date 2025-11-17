@@ -22,6 +22,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 # CORS Middleware
 origins = [
     "http://localhost",
