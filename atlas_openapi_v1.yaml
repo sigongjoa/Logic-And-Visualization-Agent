@@ -1,297 +1,1760 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: "Project: ATLAS - AI Coaching Platform API (V1)"
-  description: "학생의 4축 잠재 공간 모델을 기반으로 코칭 활동을 지원하는 통합 API"
-  version: "1.0.0"
-servers:
-  - url: "https://api.atlas.sigongjoa.com/v1"
-    description: "Production Server"
-  - url: "http://localhost:8000/v1"
-    description: "Local Development Server"
-
+  title: 'Project: ATLAS - AI Coaching Platform API (V1)'
+  description: 학생의 4축 잠재 공간 모델을 기반으로 코칭 활동을 지원하는 통합 API
+  version: 1.0.0
 paths:
-  /students:
+  /:
+    get:
+      summary: Read Root
+      operationId: read_root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /assessments/:
     post:
-      summary: "[V1핵심] 신규 학생 등록"
       tags:
-        - "Students"
-      description: "새로운 학생을 시스템에 등록합니다."
+      - 4-Axis Model
+      summary: Create Assessment
+      operationId: create_assessment_assessments__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorHistoryEntry'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /assessments/manual:
+    post:
+      tags:
+      - 4-Axis Model
+      summary: Create Manual Assessment
+      description: 'Create a new manual assessment and its corresponding vector history.
+
+        This is typically done by a coach manually adjusting a student''s 4-axis model.'
+      operationId: create_manual_assessment_assessments_manual_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualAssessmentCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorHistoryEntry'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /submissions/:
+    post:
+      tags:
+      - Submissions
+      summary: Create Submission
+      operationId: create_submission_submissions__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /submissions/{submission_id}:
+    get:
+      tags:
+      - Submissions
+      summary: Get Submission By Id
+      operationId: get_submission_by_id_submissions__submission_id__get
+      parameters:
+      - name: submission_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submission Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /submissions/{submission_id}/review:
+    post:
+      tags:
+      - Submissions
+      summary: Review Submission
+      operationId: review_submission_submissions__submission_id__review_post
+      parameters:
+      - name: submission_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submission Id
       requestBody:
         required: true
         content:
           application/json:
             schema:
+              $ref: '#/components/schemas/SubmissionReviewCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionReviewResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login For Access Token
+      operationId: login_for_access_token_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /notifications/:
+    get:
+      tags:
+      - Notifications
+      summary: Get Notifications
+      operationId: get_notifications_notifications__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Notification'
+                type: array
+                title: Response Get Notifications Notifications  Get
+        '404':
+          description: Not found
+  /notifications/{notification_id}/read:
+    put:
+      tags:
+      - Notifications
+      summary: Mark Notification As Read
+      operationId: mark_notification_as_read_notifications__notification_id__read_put
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Notification Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /notifications/mark-all-read:
+    put:
+      tags:
+      - Notifications
+      summary: Mark All Notifications As Read
+      operationId: mark_all_notifications_as_read_notifications_mark_all_read_put
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '404':
+          description: Not found
+  /users/me:
+    get:
+      tags:
+      - Users
+      summary: Get Current User Profile
+      operationId: get_current_user_profile_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+        '404':
+          description: Not found
+    put:
+      tags:
+      - Users
+      summary: Update Current User Profile
+      operationId: update_current_user_profile_users_me_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Users
+      summary: Deactivate Current User Account
+      operationId: deactivate_current_user_account_users_me_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '404':
+          description: Not found
+  /users/me/password:
+    put:
+      tags:
+      - Users
+      summary: Update Current User Password
+      operationId: update_current_user_password_users_me_password_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /users/me/notifications:
+    put:
+      tags:
+      - Users
+      summary: Update Current User Notifications
+      operationId: update_current_user_notifications_users_me_notifications_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotificationUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserNotificationUpdate'
+        '404':
+          description: Not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /reports/drafts:
+    get:
+      tags:
+      - Reporting
+      summary: Get Report Drafts
+      operationId: get_report_drafts_reports_drafts_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/WeeklyReport'
+                type: array
+                title: Response Get Report Drafts Reports Drafts Get
+  /reports/{report_id}/finalize:
+    put:
+      tags:
+      - Reporting
+      summary: Finalize Report
+      operationId: finalize_report_reports__report_id__finalize_put
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Report Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachComment'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyReport'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /reports/{report_id}/send:
+    post:
+      tags:
+      - Reporting
+      summary: Send Report
+      operationId: send_report_reports__report_id__send_post
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Report Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/:
+    get:
+      tags:
+      - Students
+      summary: Get All Students
+      operationId: get_all_students_students__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Student'
+                type: array
+                title: Response Get All Students Students  Get
+    post:
+      tags:
+      - Students
+      summary: Create Student
+      operationId: create_student_students__post
+      requestBody:
+        content:
+          application/json:
+            schema:
               $ref: '#/components/schemas/StudentCreate'
+        required: true
       responses:
         '201':
-          description: "학생이 성공적으로 등록됨"
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Student'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /students/{student_id}/vector-history:
     get:
-      summary: "학생의 4축 모델 성장 이력 조회 (코치용)"
       tags:
-        - "4-Axis Model"
+      - Students
+      summary: Get Vector History
+      operationId: get_vector_history_students__student_id__vector_history_get
       parameters:
-        - name: student_id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
       responses:
         '200':
-          description: "학생의 4축 모델(Student_Vector_History) 이력 리스트"
+          description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/VectorHistoryEntry'
-
-  /assessments/manual:
-    post:
-      summary: "[V1핵심] 4축 모델 수동 갱신 (코치용)"
+                title: Response Get Vector History Students  Student Id  Vector History
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/{student_id}/mastery:
+    get:
       tags:
-        - "4-Axis Model"
-      description: "코치가 수동으로 진단 이벤트를 생성하고 학생의 4축 모델 점수를 갱신합니다."
-      requestBody:
+      - Students
+      summary: Get Student Mastery
+      operationId: get_student_mastery_students__student_id__mastery_get
+      parameters:
+      - name: student_id
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ManualAssessmentCreate'
+        schema:
+          type: string
+          title: Student Id
       responses:
-        '201':
-          description: "새로운 4축 모델(VectorHistoryEntry)이 성공적으로 생성됨"
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentMastery'
+                title: Response Get Student Mastery Students  Student Id  Mastery
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/{student_id}/reports:
+    get:
+      tags:
+      - Students
+      summary: Get Student Reports
+      operationId: get_student_reports_students__student_id__reports_get
+      parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeeklyReport'
+                title: Response Get Student Reports Students  Student Id  Reports
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/{student_id}/latest_vector:
+    get:
+      tags:
+      - Students
+      summary: Get Student Latest Vector
+      operationId: get_student_latest_vector_students__student_id__latest_vector_get
+      parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
+      responses:
+        '200':
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorHistoryEntry'
-
-  /submissions:
-    post:
-      summary: "[V1핵심] 학생 과제 제출 (AI 주도 학습)"
-      tags:
-        - "Submissions"
-      description: "학생이 문제를 제출하면, V1 뼈대 전략에 따라 Meta-RAG가 '텍스트 해설'과 'Manim 콘텐츠 ID'를 반환합니다."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SubmissionCreate'
-      responses:
-        '201':
-          description: "분석 및 시각화 매칭 완료. 텍스트 해설과 Manim 콘텐츠 URL 반환."
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionResult'
-  /submissions/{submission_id}:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/{student_id}/submissions:
     get:
-      summary: "특정 제출물 조회"
       tags:
-        - "Submissions"
+      - Students
+      summary: Get Student Submissions
+      operationId: get_student_submissions_students__student_id__submissions_get
       parameters:
-        - name: submission_id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
       responses:
         '200':
-          description: "제출물 정보"
+          description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionResult'
-
-  /anki-cards:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubmissionResult'
+                title: Response Get Student Submissions Students  Student Id  Submissions
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /students/{student_id}/anki-cards:
     get:
-      summary: "모든 Anki 카드 조회"
       tags:
-        - "Anki"
+      - Students
+      summary: Get Student Anki Cards
+      operationId: get_student_anki_cards_students__student_id__anki_cards_get
+      parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
       responses:
         '200':
-          description: "Anki 카드 리스트"
+          description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/AnkiCard'
-
-  /anki-cards/{card_id}:
+                title: Response Get Student Anki Cards Students  Student Id  Anki
+                  Cards Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /coach-memos/:
     get:
-      summary: "특정 Anki 카드 조회"
       tags:
-        - "Anki"
+      - Coaching
+      summary: Read Coach Memos
+      operationId: read_coach_memos_coach_memos__get
       parameters:
-        - name: card_id
-          in: path
-          required: true
-          schema:
-            type: integer
+      - name: student_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Student Id
+      - name: coach_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Coach Id
       responses:
         '200':
-          description: "Anki 카드 정보"
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoachMemoResponse'
+                title: Response Read Coach Memos Coach Memos  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Coaching
+      summary: Create Coach Memo
+      operationId: create_coach_memo_coach_memos__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachMemoCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachMemoResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /llm-logs/feedback:
+    post:
+      tags:
+      - MLOps
+      summary: Create Llm Feedback
+      operationId: create_llm_feedback_llm_logs_feedback_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMFeedback'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMLogResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /llm-logs/feedback/{log_id}:
+    patch:
+      tags:
+      - MLOps
+      summary: Update Llm Feedback
+      operationId: update_llm_feedback_llm_logs_feedback__log_id__patch
+      parameters:
+      - name: log_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Log Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMFeedback'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMLogResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /coaches/:
+    get:
+      tags:
+      - Coaches
+      summary: Read Coaches
+      operationId: read_coaches_coaches__get
+      parameters:
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Skip
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coach'
+                title: Response Read Coaches Coaches  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /coaches/{coach_id}:
+    get:
+      tags:
+      - Coaches
+      summary: Read Coach
+      operationId: read_coach_coaches__coach_id__get
+      parameters:
+      - name: coach_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Coach Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coach'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /coaches/{coach_id}/students:
+    get:
+      tags:
+      - Coaches
+      summary: Read Coach Students
+      operationId: read_coach_students_coaches__coach_id__students_get
+      parameters:
+      - name: coach_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Coach Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+                title: Response Read Coach Students Coaches  Coach Id  Students Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /coaches/{coach_id}/submissions:
+    get:
+      tags:
+      - Coaches
+      summary: Read Coach Submissions
+      operationId: read_coach_submissions_coaches__coach_id__submissions_get
+      parameters:
+      - name: coach_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Coach Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubmissionResult'
+                title: Response Read Coach Submissions Coaches  Coach Id  Submissions
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /anki-cards/{card_id}/review:
+    patch:
+      tags:
+      - Anki Cards
+      summary: Review Anki Card
+      operationId: review_anki_card_anki_cards__card_id__review_patch
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Card Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnkiCardReview'
+      responses:
+        '200':
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AnkiCard'
-
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /anki-cards/student/{student_id}:
+    get:
+      tags:
+      - Anki Cards
+      summary: Get Anki Cards For Student
+      operationId: get_anki_cards_for_student_anki_cards_student__student_id__get
+      parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Student Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnkiCard'
+                title: Response Get Anki Cards For Student Anki Cards Student  Student
+                  Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    VectorAxis:
-      type: integer
-      description: "4축 모델의 각 축 점수 (0-100)"
-      example: 65
-
-    VectorHistoryEntry:
-      type: object
-      properties:
-        vector_id:
-          type: string
-        assessment_id:
-          type: string
-        student_id:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        axis1_geo:
-          $ref: '#/components/schemas/VectorAxis'
-        axis1_alg:
-          $ref: '#/components/schemas/VectorAxis'
-        axis1_ana:
-          $ref: '#/components/schemas/VectorAxis'
-        axis2_opt:
-          $ref: '#/components/schemas/VectorAxis'
-        axis2_piv:
-          $ref: '#/components/schemas/VectorAxis'
-        axis2_dia:
-          $ref: '#/components/schemas/VectorAxis'
-        axis3_con:
-          $ref: '#/components/schemas/VectorAxis'
-        axis3_pro:
-          $ref: '#/components/schemas/VectorAxis'
-        axis3_ret:
-          $ref: '#/components/schemas/VectorAxis'
-        axis4_acc:
-          $ref: '#/components/schemas/VectorAxis'
-        axis4_gri:
-          $ref: '#/components/schemas/VectorAxis'
-
-    ManualAssessmentCreate:
-      type: object
-      required:
-        - student_id
-      properties:
-        student_id:
-          type: string
-          example: "std_kimminjun"
-        axis1_geo: { $ref: '#/components/schemas/VectorAxis' }
-        axis1_alg: { $ref: '#/components/schemas/VectorAxis' }
-        axis1_ana: { $ref: '#/components/schemas/VectorAxis' }
-        axis2_opt: { $ref: '#/components/schemas/VectorAxis' }
-        axis2_piv: { $ref: '#/components/schemas/VectorAxis' }
-        axis2_dia: { $ref: '#/components/schemas/VectorAxis' }
-        axis3_con: { $ref: '#/components/schemas/VectorAxis' }
-        axis3_pro: { $ref: '#/components/schemas/VectorAxis' }
-        axis3_ret: { $ref: '#/components/schemas/VectorAxis' }
-        axis4_acc: { $ref: '#/components/schemas/VectorAxis' }
-        axis4_gri: { $ref: '#/components/schemas/VectorAxis' }
-
-    SubmissionCreate:
-      type: object
-      properties:
-        student_id:
-          type: string
-          example: "std_kimminjun"
-        problem_text:
-          type: string
-          example: "x^2 - 4x + 3 = 0의 해를 구하시오."
-        manim_visualization_json:
-          type: object
-          nullable: true
-        
-    SubmissionResult:
-      type: object
-      properties:
-        submission_id:
-          type: string
-        student_id:
-          type: string
-        problem_text:
-          type: string
-        status:
-          type: string
-          example: "COMPLETE"
-        logical_path_text:
-          type: string
-          example: "이차방정식 문제입니다. '근의 공식' 개념(C-001)을 사용합니다..."
-        concept_id:
-          type: string
-          example: "C-001"
-        manim_content_url:
-          type: string
-          format: uri
-          example: "https://youtube.com/watch?v=..."
-        audio_explanation_url:
-          type: string
-          format: uri
-          example: "https://audio.example.com/placeholder.wav"
-        manim_visualization_json:
-          type: object
-          nullable: true
-        submitted_at:
-          type: string
-          format: date-time
-
-    StudentCreate:
-      type: object
-      required:
-        - student_id
-        - student_name
-      properties:
-        student_id:
-          type: string
-        student_name:
-          type: string
-
-    Student:
-      type: object
-      properties:
-        student_id:
-          type: string
-        student_name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-
     AnkiCard:
-      type: object
       properties:
         card_id:
           type: integer
+          title: Card Id
         student_id:
           type: string
+          title: Student Id
         llm_log_id:
           type: integer
+          title: Llm Log Id
         question:
           type: string
+          title: Question
         answer:
           type: string
+          title: Answer
         next_review_date:
           type: string
           format: date-time
+          title: Next Review Date
         interval_days:
           type: integer
+          title: Interval Days
         ease_factor:
           type: number
-          format: float
+          title: Ease Factor
         repetitions:
           type: integer
+          title: Repetitions
+      type: object
+      required:
+      - card_id
+      - student_id
+      - llm_log_id
+      - question
+      - answer
+      - next_review_date
+      - interval_days
+      - ease_factor
+      - repetitions
+      title: AnkiCard
+    AnkiCardReview:
+      properties:
+        grade:
+          type: integer
+          maximum: 5.0
+          minimum: 0.0
+          title: Grade
+      type: object
+      required:
+      - grade
+      title: AnkiCardReview
+    AssessmentCreate:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        assessment_type:
+          type: string
+          title: Assessment Type
+        source_ref_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Ref Id
+        notes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notes
+        ai_model_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ai Model Version
+        ai_reason_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ai Reason Code
+        vector_data:
+          additionalProperties: true
+          type: object
+          title: Vector Data
+          example:
+            axis1_alg: 60
+            axis1_ana: 75
+            axis1_geo: 70
+            axis2_dia: 70
+            axis2_opt: 80
+            axis2_piv: 65
+            axis3_con: 85
+            axis3_pro: 70
+            axis3_ret: 75
+            axis4_acc: 90
+            axis4_gri: 80
+      type: object
+      required:
+      - student_id
+      - assessment_type
+      - vector_data
+      title: AssessmentCreate
+    Coach:
+      properties:
+        coach_id:
+          type: string
+          title: Coach Id
+        coach_name:
+          type: string
+          title: Coach Name
+      type: object
+      required:
+      - coach_id
+      - coach_name
+      title: Coach
+    CoachComment:
+      properties:
+        coach_comment:
+          type: string
+          title: Coach Comment
+      type: object
+      required:
+      - coach_comment
+      title: CoachComment
+    CoachMemoCreate:
+      properties:
+        coach_id:
+          type: string
+          title: Coach Id
+        student_id:
+          type: string
+          title: Student Id
+        memo_text:
+          type: string
+          title: Memo Text
+      type: object
+      required:
+      - coach_id
+      - student_id
+      - memo_text
+      title: CoachMemoCreate
+    CoachMemoResponse:
+      properties:
+        coach_id:
+          type: string
+          title: Coach Id
+        student_id:
+          type: string
+          title: Student Id
+        memo_text:
+          type: string
+          title: Memo Text
+        memo_id:
+          type: integer
+          title: Memo Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - coach_id
+      - student_id
+      - memo_text
+      - memo_id
+      - created_at
+      title: CoachMemoResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LLMFeedback:
+      properties:
+        log_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Log Id
+        coach_feedback:
+          type: string
+          title: Coach Feedback
+        reason_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason Code
+        source_submission_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Submission Id
+      type: object
+      required:
+      - coach_feedback
+      title: LLMFeedback
+    LLMLogResponse:
+      properties:
+        log_id:
+          type: integer
+          title: Log Id
+        source_submission_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Submission Id
+        decision:
+          type: string
+          title: Decision
+        model_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model Version
+        coach_feedback:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Coach Feedback
+        reason_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason Code
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - log_id
+      - decision
+      - created_at
+      title: LLMLogResponse
+    ManualAssessmentCreate:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        axis1_geo:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Geo
+        axis1_alg:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Alg
+        axis1_ana:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Ana
+        axis2_opt:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Opt
+        axis2_piv:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Piv
+        axis2_dia:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Dia
+        axis3_con:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Con
+        axis3_pro:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Pro
+        axis3_ret:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Ret
+        axis4_acc:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis4 Acc
+        axis4_gri:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis4 Gri
+      type: object
+      required:
+      - student_id
+      - axis1_geo
+      - axis1_alg
+      - axis1_ana
+      - axis2_opt
+      - axis2_piv
+      - axis2_dia
+      - axis3_con
+      - axis3_pro
+      - axis3_ret
+      - axis4_acc
+      - axis4_gri
+      title: ManualAssessmentCreate
+    Notification:
+      properties:
+        notification_id:
+          type: string
+          title: Notification Id
+        user_id:
+          type: string
+          title: User Id
+        type:
+          type: string
+          enum:
+          - assignment_graded
+          - new_feedback
+          - new_student
+          - new_submission
+          - system_alert
+          title: Type
+        title:
+          type: string
+          title: Title
+        message:
+          type: string
+          title: Message
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        is_read:
+          type: boolean
+          title: Is Read
+        related_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Related Id
+      type: object
+      required:
+      - notification_id
+      - user_id
+      - type
+      - title
+      - message
+      - created_at
+      - is_read
+      title: Notification
+    Student:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        student_name:
+          type: string
+          title: Student Name
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - student_id
+      - student_name
+      - created_at
+      title: Student
+    StudentCreate:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        student_name:
+          type: string
+          title: Student Name
+      type: object
+      required:
+      - student_id
+      - student_name
+      title: StudentCreate
+    StudentMastery:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        concept_id:
+          type: string
+          title: Concept Id
+        mastery_score:
+          type: integer
+          title: Mastery Score
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+        last_updated:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Updated
+      type: object
+      required:
+      - student_id
+      - concept_id
+      - mastery_score
+      title: StudentMastery
+    SubmissionCreate:
+      properties:
+        student_id:
+          type: string
+          title: Student Id
+        problem_text:
+          type: string
+          title: Problem Text
+        manim_visualization_json:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Manim Visualization Json
+      type: object
+      required:
+      - student_id
+      - problem_text
+      title: SubmissionCreate
+    SubmissionResult:
+      properties:
+        submission_id:
+          type: string
+          title: Submission Id
+        student_id:
+          type: string
+          title: Student Id
+        problem_text:
+          type: string
+          title: Problem Text
+        status:
+          type: string
+          title: Status
+        logical_path_text:
+          type: string
+          title: Logical Path Text
+        concept_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Concept Id
+        manim_content_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Manim Content Url
+        audio_explanation_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Audio Explanation Url
+        manim_visualization_json:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Manim Visualization Json
+        submitted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Submitted At
+      type: object
+      required:
+      - submission_id
+      - student_id
+      - problem_text
+      - status
+      - logical_path_text
+      title: SubmissionResult
+    SubmissionReviewCreate:
+      properties:
+        coach_id:
+          type: string
+          title: Coach Id
+        decision:
+          type: string
+          enum:
+          - approved
+          - needs_revision
+          title: Decision
+        coach_feedback:
+          type: string
+          title: Coach Feedback
+      type: object
+      required:
+      - coach_id
+      - decision
+      - coach_feedback
+      title: SubmissionReviewCreate
+    SubmissionReviewResponse:
+      properties:
+        log_id:
+          type: integer
+          title: Log Id
+        coach_id:
+          type: string
+          title: Coach Id
+        decision:
+          type: string
+          enum:
+          - approved
+          - needs_revision
+          title: Decision
+        coach_feedback:
+          type: string
+          title: Coach Feedback
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - log_id
+      - coach_id
+      - decision
+      - coach_feedback
+      - created_at
+      title: SubmissionReviewResponse
+    Token:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+      type: object
+      required:
+      - access_token
+      - token_type
+      title: Token
+    UserLogin:
+      properties:
+        email_or_username:
+          type: string
+          title: Email Or Username
+        password:
+          type: string
+          title: Password
+        user_type:
+          type: string
+          enum:
+          - student
+          - coach
+          title: User Type
+      type: object
+      required:
+      - email_or_username
+      - password
+      - user_type
+      title: UserLogin
+    UserMe:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        username:
+          type: string
+          title: Username
+        email:
+          type: string
+          title: Email
+        user_type:
+          type: string
+          enum:
+          - student
+          - coach
+          title: User Type
+      type: object
+      required:
+      - user_id
+      - username
+      - email
+      - user_type
+      title: UserMe
+    UserNotificationUpdate:
+      properties:
+        new_assignments:
+          type: boolean
+          title: New Assignments
+        feedback_from_coach:
+          type: boolean
+          title: Feedback From Coach
+        platform_updates:
+          type: boolean
+          title: Platform Updates
+      type: object
+      required:
+      - new_assignments
+      - feedback_from_coach
+      - platform_updates
+      title: UserNotificationUpdate
+    UserPasswordUpdate:
+      properties:
+        current_password:
+          type: string
+          title: Current Password
+        new_password:
+          type: string
+          title: New Password
+        confirm_new_password:
+          type: string
+          title: Confirm New Password
+      type: object
+      required:
+      - current_password
+      - new_password
+      - confirm_new_password
+      title: UserPasswordUpdate
+    UserUpdate:
+      properties:
+        username:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Username
+        email:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Email
+      type: object
+      title: UserUpdate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VectorHistoryEntry:
+      properties:
+        vector_id:
+          type: string
+          title: Vector Id
+        assessment_id:
+          type: string
+          title: Assessment Id
+        student_id:
+          type: string
+          title: Student Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        axis1_geo:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Geo
+        axis1_alg:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Alg
+        axis1_ana:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis1 Ana
+        axis2_opt:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Opt
+        axis2_piv:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Piv
+        axis2_dia:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis2 Dia
+        axis3_con:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Con
+        axis3_pro:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Pro
+        axis3_ret:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis3 Ret
+        axis4_acc:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis4 Acc
+        axis4_gri:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Axis4 Gri
+      type: object
+      required:
+      - vector_id
+      - assessment_id
+      - student_id
+      - created_at
+      - axis1_geo
+      - axis1_alg
+      - axis1_ana
+      - axis2_opt
+      - axis2_piv
+      - axis2_dia
+      - axis3_con
+      - axis3_pro
+      - axis3_ret
+      - axis4_acc
+      - axis4_gri
+      title: VectorHistoryEntry
+    WeeklyReport:
+      properties:
+        report_id:
+          type: integer
+          title: Report Id
+        student_id:
+          type: string
+          title: Student Id
+        coach_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Coach Id
+        period_start:
+          type: string
+          format: date-time
+          title: Period Start
+        period_end:
+          type: string
+          format: date-time
+          title: Period End
+        status:
+          type: string
+          title: Status
+        ai_summary:
+          type: string
+          title: Ai Summary
+        vector_start_id:
+          type: string
+          title: Vector Start Id
+        vector_end_id:
+          type: string
+          title: Vector End Id
+        coach_comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Coach Comment
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        finalized_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Finalized At
+      type: object
+      required:
+      - report_id
+      - student_id
+      - period_start
+      - period_end
+      - status
+      - ai_summary
+      - vector_start_id
+      - vector_end_id
+      - created_at
+      title: WeeklyReport

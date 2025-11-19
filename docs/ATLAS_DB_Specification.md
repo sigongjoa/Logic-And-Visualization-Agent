@@ -60,6 +60,8 @@ Project: ATLAS - 통합 데이터베이스 명세서 (V1)
 | assessment_type| VARCHAR(20) | NOT NULL | 진단 종류 (EXAM, COACH_MANUAL, AI_ANALYSIS) |
 | source_ref_id | VARCHAR(50) | NULL | 이 진단의 근거 ID (e.g., submission_id 또는 exam_id) |
 | notes | TEXT | NULL | 진단에 대한 추가 메모 (e.g., "코치가 2축 점수 수동 조정") |
+| ai_model_version | VARCHAR(50) | NULL | [V2] 진단에 사용된 AI 모델 버전 |
+| ai_reason_code | VARCHAR(50) | NULL | [V2] AI 진단 근거 코드 |
 
 2.2. Student_Vector_History (학생 잠재 공간 '이력')
 
@@ -144,6 +146,8 @@ V1 전략(텍스트 해설 + 콘텐츠 라이브러리)을 지원합니다.
 | logical_path_text| TEXT | NULL | [Meta-RAG 결과] 텍스트 해설 |
 | concept_id | VARCHAR(50) | FK (Concepts_Library), NULL| [Meta-RAG 결과] AI가 식별한 관련 개념 ID |
 | student_answer | TEXT | NULL | 학생의 최종 답안 (진단평가용) |
+| audio_explanation_url | VARCHAR(255) | NULL | [V2] Fish Speech로 생성된 음성 해설 URL |
+| manim_visualization_json | TEXT | NULL | [V2] Manim 시각화 데이터 (JSON) |
 
 4.2. Coach_Memos (코치 정성적 메모)
 
@@ -183,7 +187,9 @@ Pacer의 Anki 카드 생성 판단 등, AI의 세부 결정을 기록하고 코�
 | question | TEXT | NOT NULL | Anki 질문 (AI 생성) |
 | answer | TEXT | NOT NULL | Anki 답변 (AI 생성) |
 | next_review_date | DATE | NOT NULL | 다음 복습 예정일 (SM2 알고리즘) [cite: sigongjoa/pacer/pacer-a60f66786b01de22ec2291ec871c4f9328d9cf73/backend/anki_engine.py] |
-| ... (SM2 관련 필드: interval_days, ease_factor, repetitions) | | | |
+| repetitions | INT | NOT NULL, DEFAULT 0 | (SM2) 반복 횟수 |
+| ease_factor | FLOAT | NOT NULL, DEFAULT 2.5 | (SM2) 용이성 계수 |
+| interval_days | INT | NOT NULL, DEFAULT 0 | (SM2) 다음 복습 간격(일) |
 
 5.3. Weekly_Reports (주간 리포트)
 
